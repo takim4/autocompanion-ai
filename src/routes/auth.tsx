@@ -21,15 +21,14 @@ export const Route = createFileRoute("/auth")({
   }),
 });
 
-const loginSchema = z.object({
+type Mode = "login" | "register";
+
+const schema = z.object({
   email: z.string().trim().email("Geçerli bir e-posta girin"),
   password: z.string().min(6, "En az 6 karakter"),
+  display_name: z.string().trim().max(60).optional(),
 });
-const registerSchema = loginSchema.extend({
-  display_name: z.string().trim().min(2, "En az 2 karakter").max(60),
-});
-
-type Mode = "login" | "register";
+type FormValues = z.infer<typeof schema>;
 
 function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
