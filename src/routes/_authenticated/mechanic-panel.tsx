@@ -357,12 +357,12 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
         )}
       </div>
       <p className="mt-2 whitespace-pre-wrap text-xs">{req.issue_summary as string}</p>
-      {req.diagnosis_snapshot && (
+      {req.diagnosis_snapshot ? (
         <details className="mt-2 rounded bg-muted/40 p-2 text-[11px]">
           <summary className="cursor-pointer font-medium">AI teşhis özeti</summary>
           <pre className="mt-1 whitespace-pre-wrap font-sans">{req.diagnosis_snapshot as string}</pre>
         </details>
-      )}
+      ) : null}
 
       {!open && !already && (
         <button
