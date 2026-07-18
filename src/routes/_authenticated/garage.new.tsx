@@ -288,7 +288,7 @@ function NewVehiclePage() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-5 flex justify-end">
+      <div className="sticky bottom-20 md:bottom-4 z-10 mt-5 flex justify-end rounded-xl border border-border bg-background/95 p-3 backdrop-blur">
         {step < 4 ? (
           <Button
             disabled={!canNext}
