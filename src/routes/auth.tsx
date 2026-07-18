@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -44,9 +44,13 @@ type FormValues = z.infer<typeof schema>;
 function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [busy, setBusy] = useState(false);
-  const nav = useNavigate();
+  const router = useRouter();
   const search = Route.useSearch();
   const target = safeRedirect(search.redirect);
+
+  const goTarget = () => {
+    router.navigate({ href: target, replace: true });
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -63,7 +67,7 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Hoş geldin!");
-        nav({ to: target });
+        goTarget();
       } else {
         const { error } = await supabase.auth.signUp({
           email: values.email,
@@ -75,7 +79,7 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Kayıt başarılı! Yönlendiriliyorsun.");
-        nav({ to: target });
+        goTarget();
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bir hata oluştu");
@@ -91,7 +95,7 @@ function AuthPage() {
         redirect_uri: window.location.origin + target,
       });
       if (res.error) throw res.error;
-      if (!res.redirected) nav({ to: target });
+      if (!res.redirected) goTarget();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Google girişi başarısız");
     } finally {
