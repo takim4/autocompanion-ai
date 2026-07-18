@@ -44,9 +44,13 @@ type FormValues = z.infer<typeof schema>;
 function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [busy, setBusy] = useState(false);
-  const nav = useNavigate();
+  const router = useRouter();
   const search = Route.useSearch();
   const target = safeRedirect(search.redirect);
+
+  const goTarget = () => {
+    router.navigate({ href: target, replace: true });
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
