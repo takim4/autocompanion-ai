@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +15,8 @@ import { lovable } from "@/integrations/lovable/index";
 const searchSchema = z.object({
   redirect: fallback(z.string(), "").default(""),
 });
+
+const POST_AUTH_REDIRECT_KEY = "autosocial:post-auth-redirect";
 
 function safeRedirect(value: string): string {
   if (value && value.startsWith("/") && !value.startsWith("//")) return value;
@@ -48,9 +50,31 @@ function AuthPage() {
   const search = Route.useSearch();
   const target = safeRedirect(search.redirect);
 
-  const goTarget = () => {
-    router.navigate({ href: target, replace: true });
-  };
+  const goTarget = useCallback(
+    async (nextTarget = target) => {
+      await router.navigate({ to: nextTarget, replace: true });
+    },
+    [router, target],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function redirectExistingSession() {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user || cancelled) return;
+
+      const storedTarget = window.sessionStorage.getItem(POST_AUTH_REDIRECT_KEY);
+      if (storedTarget) window.sessionStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+      await goTarget(safeRedirect(storedTarget || search.redirect));
+    }
+
+    redirectExistingSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [goTarget, search.redirect]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -66,10 +90,12 @@ function AuthPage() {
           password: values.password,
         });
         if (error) throw error;
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData.user) throw new Error("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
         toast.success("Hoş geldin!");
-        goTarget();
+        await goTarget();
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
           options: {
@@ -78,8 +104,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Kayıt başarılı! Yönlendiriliyorsun.");
-        goTarget();
+        if (data.session) {
+          toast.success("Kayıt başarılı! Yönlendiriliyorsun.");
+          await goTarget();
+        } else {
+          toast.success("Kayıt başarılı! E-postanı doğruladıktan sonra giriş yapabilirsin.");
+          setMode("login");
+        }
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bir hata oluştu");
@@ -91,11 +122,12 @@ function AuthPage() {
   async function onGoogle() {
     setBusy(true);
     try {
+      window.sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, target);
       const res = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + target,
+        redirect_uri: window.location.origin,
       });
       if (res.error) throw res.error;
-      if (!res.redirected) goTarget();
+      if (!res.redirected) await goTarget();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Google girişi başarısız");
     } finally {
@@ -119,6 +151,7 @@ function AuthPage() {
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-4 flex rounded-lg bg-muted p-1">
             <button
+              type="button"
               onClick={() => setMode("login")}
               className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
                 mode === "login" ? "bg-background shadow" : "text-muted-foreground"
@@ -127,6 +160,7 @@ function AuthPage() {
               Giriş
             </button>
             <button
+              type="button"
               onClick={() => setMode("register")}
               className={`flex-1 rounded-md py-2 text-sm font-medium transition ${
                 mode === "register" ? "bg-background shadow" : "text-muted-foreground"
@@ -181,7 +215,7 @@ function AuthPage() {
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
+          <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
