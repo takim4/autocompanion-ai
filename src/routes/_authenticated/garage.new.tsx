@@ -132,7 +132,7 @@ function NewVehiclePage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Aracının markası hangisi?
               </p>
-              <div className="mt-4 grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1">
+              <div className="mt-4 grid max-h-[50vh] grid-cols-2 gap-2 overflow-y-auto pr-1">
                 {CAR_BRANDS.map((b) => (
                   <button
                     key={b}
@@ -288,7 +288,7 @@ function NewVehiclePage() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-5 flex justify-end">
+      <div className="sticky bottom-20 md:bottom-4 z-10 mt-5 flex justify-end rounded-xl border border-border bg-background/95 p-3 backdrop-blur">
         {step < 4 ? (
           <Button
             disabled={!canNext}
