@@ -13,6 +13,8 @@ import {
   sendMessage,
 } from "@/lib/chat.functions";
 import { listVehicles } from "@/lib/garage.functions";
+import { MechanicSuggestions } from "@/components/mechanic-suggestions";
+import { parseSpecialtiesFromAI } from "@/lib/mechanic-data";
 
 export const Route = createFileRoute("/_authenticated/ai-chat")({
   component: AiChatPage,
