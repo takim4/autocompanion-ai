@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,8 +12,25 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
+const searchSchema = z.object({
+  redirect: fallback(z.string(), "").default(""),
+});
+
+function safeRedirect(value: string): string {
+  if (value && value.startsWith("/") && !value.startsWith("//")) return value;
+  return "/home";
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: zodValidator(searchSchema),
   component: AuthPage,
+  head: () => ({
+    meta: [
+      { title: "Giriş — AutoSocial" },
+      { name: "description", content: "AutoSocial hesabınıza giriş yapın veya kayıt olun." },
+    ],
+  }),
+});
   head: () => ({
     meta: [
       { title: "Giriş — AutoSocial" },
