@@ -147,8 +147,8 @@ export const sendMessage = createServerFn({ method: "POST" })
     try {
       const { text } = await generateText({
         model,
+        system: DIAGNOSTICIAN_SYSTEM_PROMPT + vehicleContext,
         messages: [
-          { role: "system", content: DIAGNOSTICIAN_SYSTEM_PROMPT + vehicleContext },
           ...(history ?? []).map((m) => ({
             role: m.role as "user" | "assistant",
             content: m.content,
