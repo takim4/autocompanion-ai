@@ -245,6 +245,81 @@ export type Database = {
         }
         Relationships: []
       }
+      mechanics: {
+        Row: {
+          active: boolean
+          address: string
+          avg_rating: number
+          bio: string | null
+          brands: string[]
+          business_name: string
+          city: string
+          created_at: string
+          district: string | null
+          email: string | null
+          hours: Json | null
+          id: string
+          lat: number | null
+          lng: number | null
+          owner_name: string | null
+          phone: string
+          rating_count: number
+          specialties: string[]
+          updated_at: string
+          user_id: string
+          verified: boolean
+          whatsapp: string | null
+        }
+        Insert: {
+          active?: boolean
+          address: string
+          avg_rating?: number
+          bio?: string | null
+          brands?: string[]
+          business_name: string
+          city: string
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          hours?: Json | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          owner_name?: string | null
+          phone: string
+          rating_count?: number
+          specialties?: string[]
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+          whatsapp?: string | null
+        }
+        Update: {
+          active?: boolean
+          address?: string
+          avg_rating?: number
+          bio?: string | null
+          brands?: string[]
+          business_name?: string
+          city?: string
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          hours?: Json | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          owner_name?: string | null
+          phone?: string
+          rating_count?: number
+          specialties?: string[]
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           citations: Json | null
@@ -324,6 +399,127 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      quote_requests: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          diagnosis_snapshot: string | null
+          id: string
+          issue_summary: string
+          mechanic_id: string
+          preferred_contact: string
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          diagnosis_snapshot?: string | null
+          id?: string
+          issue_summary: string
+          mechanic_id: string
+          preferred_contact?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          diagnosis_snapshot?: string | null
+          id?: string
+          issue_summary?: string
+          mechanic_id?: string
+          preferred_contact?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_requests_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_requests_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_responses: {
+        Row: {
+          created_at: string
+          currency: string
+          eta_days: number | null
+          id: string
+          mechanic_id: string
+          message: string
+          parts_included: boolean
+          price_max: number | null
+          price_min: number | null
+          request_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          eta_days?: number | null
+          id?: string
+          mechanic_id: string
+          message: string
+          parts_included?: boolean
+          price_max?: number | null
+          price_min?: number | null
+          request_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          eta_days?: number | null
+          id?: string
+          mechanic_id?: string
+          message?: string
+          parts_included?: boolean
+          price_max?: number | null
+          price_min?: number | null
+          request_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_responses_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_responses_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_vehicles: {
         Row: {
@@ -497,7 +693,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "expert" | "user"
+      app_role: "admin" | "moderator" | "expert" | "user" | "mechanic"
       fuel_type: "gasoline" | "diesel" | "lpg" | "hybrid" | "electric" | "other"
       transmission_type:
         | "manual"
@@ -632,7 +828,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "expert", "user"],
+      app_role: ["admin", "moderator", "expert", "user", "mechanic"],
       fuel_type: ["gasoline", "diesel", "lpg", "hybrid", "electric", "other"],
       transmission_type: [
         "manual",
