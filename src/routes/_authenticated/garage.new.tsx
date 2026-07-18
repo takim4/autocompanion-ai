@@ -132,7 +132,7 @@ function NewVehiclePage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 Aracının markası hangisi?
               </p>
-              <div className="mt-4 grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1">
+              <div className="mt-4 grid max-h-[50vh] grid-cols-2 gap-2 overflow-y-auto pr-1">
                 {CAR_BRANDS.map((b) => (
                   <button
                     key={b}
