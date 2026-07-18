@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +21,12 @@ const POST_AUTH_REDIRECT_KEY = "autosocial:post-auth-redirect";
 function safeRedirect(value: string): string {
   if (value && value.startsWith("/") && !value.startsWith("//")) return value;
   return "/home";
+}
+
+function readStoredRedirect() {
+  const storedTarget = window.sessionStorage.getItem(POST_AUTH_REDIRECT_KEY);
+  if (storedTarget) window.sessionStorage.removeItem(POST_AUTH_REDIRECT_KEY);
+  return storedTarget;
 }
 
 export const Route = createFileRoute("/auth")({
@@ -46,13 +52,17 @@ type FormValues = z.infer<typeof schema>;
 function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [busy, setBusy] = useState(false);
+  const redirectedRef = useRef(false);
   const router = useRouter();
   const search = Route.useSearch();
   const target = safeRedirect(search.redirect);
 
   const goTarget = useCallback(
     async (nextTarget = target) => {
-      await router.navigate({ to: nextTarget, replace: true });
+      if (redirectedRef.current) return;
+      redirectedRef.current = true;
+      await router.invalidate();
+      await router.navigate({ to: safeRedirect(nextTarget), replace: true });
     },
     [router, target],
   );
@@ -64,15 +74,21 @@ function AuthPage() {
       const { data } = await supabase.auth.getUser();
       if (!data.user || cancelled) return;
 
-      const storedTarget = window.sessionStorage.getItem(POST_AUTH_REDIRECT_KEY);
-      if (storedTarget) window.sessionStorage.removeItem(POST_AUTH_REDIRECT_KEY);
-      await goTarget(safeRedirect(storedTarget || search.redirect));
+      await goTarget(readStoredRedirect() || search.redirect);
     }
 
     redirectExistingSession();
 
+    const { data: authSub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" || !session?.user || cancelled) return;
+      queueMicrotask(() => {
+        void goTarget(readStoredRedirect() || search.redirect);
+      });
+    });
+
     return () => {
       cancelled = true;
+      authSub.subscription.unsubscribe();
     };
   }, [goTarget, search.redirect]);
 
@@ -85,6 +101,7 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "login") {
+        window.sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, target);
         const { error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
@@ -99,7 +116,7 @@ function AuthPage() {
           email: values.email,
           password: values.password,
           options: {
-            emailRedirectTo: `${window.location.origin}${target}`,
+            emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(target)}`,
             data: { display_name: values.display_name },
           },
         });
