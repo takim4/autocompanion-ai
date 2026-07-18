@@ -31,13 +31,6 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
 });
-  head: () => ({
-    meta: [
-      { title: "Giriş — AutoSocial" },
-      { name: "description", content: "AutoSocial hesabınıza giriş yapın veya kayıt olun." },
-    ],
-  }),
-});
 
 type Mode = "login" | "register";
 
