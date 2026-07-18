@@ -35,12 +35,12 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const nav = useNavigate();
 
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(mode === "login" ? loginSchema : registerSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
     defaultValues: { email: "", password: "", display_name: "" },
   });
 
-  async function onSubmit(values: z.infer<typeof registerSchema>) {
+  async function onSubmit(values: FormValues) {
     setBusy(true);
     try {
       if (mode === "login") {
