@@ -215,7 +215,21 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
           </div>
         )}
         {messages.map((m) => (
-          <MessageBubble key={m.id} role={m.role} content={m.content} />
+          <div key={m.id}>
+            <MessageBubble role={m.role} content={m.content} />
+            {m.role === "assistant" && (() => {
+              const specs = parseSpecialtiesFromAI(m.content);
+              if (specs.length === 0) return null;
+              return (
+                <MechanicSuggestions
+                  specialties={specs}
+                  diagnosisSnapshot={m.content}
+                  conversationId={conversationId}
+                  vehicleId={q.data?.conversation?.vehicle_id ?? null}
+                />
+              );
+            })()}
+          </div>
         ))}
         {sendMut.isPending && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
