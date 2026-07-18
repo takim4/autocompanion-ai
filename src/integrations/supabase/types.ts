@@ -14,16 +14,352 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      api_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+          label: string
+          last_used_at: string | null
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+          label: string
+          last_used_at?: string | null
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+          label?: string
+          last_used_at?: string | null
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      attachments: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          user_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          user_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          user_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachments_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      devices: {
+        Row: {
+          created_at: string
+          device_name: string | null
+          id: string
+          last_seen_at: string
+          platform: string | null
+          push_token: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_name?: string | null
+          id?: string
+          last_seen_at?: string
+          platform?: string | null
+          push_token?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_name?: string | null
+          id?: string
+          last_seen_at?: string
+          platform?: string | null
+          push_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      images: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          mime_type: string | null
+          public_url: string | null
+          size_bytes: number | null
+          storage_path: string
+          user_id: string
+          vehicle_id: string | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          public_url?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          user_id: string
+          vehicle_id?: string | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          public_url?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          user_id?: string
+          vehicle_id?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "images_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          onboarding_completed: boolean
+          reputation: number
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          onboarding_completed?: boolean
+          reputation?: number
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          reputation?: number
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      saved_vehicles: {
+        Row: {
+          brand: string
+          created_at: string
+          id: string
+          model: string
+          note: string | null
+          user_id: string
+          year: number | null
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          id?: string
+          model: string
+          note?: string | null
+          user_id: string
+          year?: number | null
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          id?: string
+          model?: string
+          note?: string | null
+          user_id?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      search_history: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          result_count: number | null
+          user_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          result_count?: number | null
+          user_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
+          result_count?: number | null
+          user_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_history_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          brand: string
+          color: string | null
+          created_at: string
+          engine_cc: number | null
+          engine_code: string | null
+          fuel: Database["public"]["Enums"]["fuel_type"] | null
+          id: string
+          is_active: boolean
+          mileage_km: number | null
+          model: string
+          nickname: string | null
+          transmission: Database["public"]["Enums"]["transmission_type"] | null
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          brand: string
+          color?: string | null
+          created_at?: string
+          engine_cc?: number | null
+          engine_code?: string | null
+          fuel?: Database["public"]["Enums"]["fuel_type"] | null
+          id?: string
+          is_active?: boolean
+          mileage_km?: number | null
+          model: string
+          nickname?: string | null
+          transmission?: Database["public"]["Enums"]["transmission_type"] | null
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          brand?: string
+          color?: string | null
+          created_at?: string
+          engine_cc?: number | null
+          engine_code?: string | null
+          fuel?: Database["public"]["Enums"]["fuel_type"] | null
+          id?: string
+          is_active?: boolean
+          mileage_km?: number | null
+          model?: string
+          nickname?: string | null
+          transmission?: Database["public"]["Enums"]["transmission_type"] | null
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "expert" | "user"
+      fuel_type: "gasoline" | "diesel" | "lpg" | "hybrid" | "electric" | "other"
+      transmission_type:
+        | "manual"
+        | "automatic"
+        | "semi_automatic"
+        | "cvt"
+        | "dct"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +486,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "expert", "user"],
+      fuel_type: ["gasoline", "diesel", "lpg", "hybrid", "electric", "other"],
+      transmission_type: [
+        "manual",
+        "automatic",
+        "semi_automatic",
+        "cvt",
+        "dct",
+      ],
+    },
   },
 } as const
