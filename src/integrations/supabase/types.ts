@@ -85,6 +85,44 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          agent: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          agent?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          agent?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devices: {
         Row: {
           created_at: string
@@ -158,6 +196,95 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_chunks: {
+        Row: {
+          brand: string | null
+          content: string
+          created_at: string
+          embedding: string | null
+          engine_code: string | null
+          id: string
+          model: string | null
+          source: string
+          title: string | null
+          url: string | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          brand?: string | null
+          content: string
+          created_at?: string
+          embedding?: string | null
+          engine_code?: string | null
+          id?: string
+          model?: string | null
+          source: string
+          title?: string | null
+          url?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          brand?: string | null
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          engine_code?: string | null
+          id?: string
+          model?: string | null
+          source?: string
+          title?: string | null
+          url?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          citations: Json | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          input_tokens: number | null
+          output_tokens: number | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          citations?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          citations?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -349,6 +476,24 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_knowledge_chunks: {
+        Args: {
+          filter_brand?: string
+          filter_model?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          brand: string
+          content: string
+          id: string
+          model: string
+          similarity: number
+          source: string
+          title: string
+          url: string
+        }[]
       }
     }
     Enums: {
