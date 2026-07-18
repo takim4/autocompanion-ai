@@ -204,8 +204,8 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
   const messages = q.data?.messages ?? [];
 
   return (
-    <div className="flex h-[70vh] flex-col">
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+    <div className="flex h-[calc(100dvh-14rem)] min-h-[420px] flex-col md:h-[70vh]">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && !sendMut.isPending && (
           <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
             Aracının belirtisini, hata koduyla birlikte veya olabildiğince detaylı yaz. Örn:
