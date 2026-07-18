@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,7 +12,17 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
+const searchSchema = z.object({
+  redirect: fallback(z.string(), "").default(""),
+});
+
+function safeRedirect(value: string): string {
+  if (value && value.startsWith("/") && !value.startsWith("//")) return value;
+  return "/home";
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: zodValidator(searchSchema),
   component: AuthPage,
   head: () => ({
     meta: [
@@ -34,6 +45,8 @@ function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [busy, setBusy] = useState(false);
   const nav = useNavigate();
+  const search = Route.useSearch();
+  const target = safeRedirect(search.redirect);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -50,19 +63,19 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Hoş geldin!");
-        nav({ to: "/home" });
+        nav({ to: target });
       } else {
         const { error } = await supabase.auth.signUp({
           email: values.email,
           password: values.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/home`,
+            emailRedirectTo: `${window.location.origin}${target}`,
             data: { display_name: values.display_name },
           },
         });
         if (error) throw error;
-        toast.success("Kayıt başarılı! Ana sayfaya yönlendiriliyorsun.");
-        nav({ to: "/home" });
+        toast.success("Kayıt başarılı! Yönlendiriliyorsun.");
+        nav({ to: target });
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bir hata oluştu");
@@ -75,16 +88,17 @@ function AuthPage() {
     setBusy(true);
     try {
       const res = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/home",
+        redirect_uri: window.location.origin + target,
       });
       if (res.error) throw res.error;
-      if (!res.redirected) nav({ to: "/home" });
+      if (!res.redirected) nav({ to: target });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Google girişi başarısız");
     } finally {
       setBusy(false);
     }
   }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
