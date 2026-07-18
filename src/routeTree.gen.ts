@@ -16,7 +16,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated/quotes'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedMechanicPanelRouteImport } from './routes/_authenticated/mechanic-panel'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedForumRouteImport } from './routes/_authenticated/forum'
 import { Route as AuthenticatedAiChatRouteImport } from './routes/_authenticated/ai-chat'
@@ -57,11 +59,22 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedQuotesRoute = AuthenticatedQuotesRouteImport.update({
+  id: '/quotes',
+  path: '/quotes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMechanicPanelRoute =
+  AuthenticatedMechanicPanelRouteImport.update({
+    id: '/mechanic-panel',
+    path: '/mechanic-panel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -98,7 +111,9 @@ export interface FileRoutesByFullPath {
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/forum': typeof AuthenticatedForumRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
   '/garage/': typeof AuthenticatedGarageIndexRoute
@@ -112,7 +127,9 @@ export interface FileRoutesByTo {
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/forum': typeof AuthenticatedForumRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
   '/garage': typeof AuthenticatedGarageIndexRoute
@@ -128,7 +145,9 @@ export interface FileRoutesById {
   '/_authenticated/ai-chat': typeof AuthenticatedAiChatRoute
   '/_authenticated/forum': typeof AuthenticatedForumRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/quotes': typeof AuthenticatedQuotesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/garage/new': typeof AuthenticatedGarageNewRoute
   '/_authenticated/garage/': typeof AuthenticatedGarageIndexRoute
@@ -144,7 +163,9 @@ export interface FileRouteTypes {
     | '/ai-chat'
     | '/forum'
     | '/home'
+    | '/mechanic-panel'
     | '/profile'
+    | '/quotes'
     | '/settings'
     | '/garage/new'
     | '/garage/'
@@ -158,7 +179,9 @@ export interface FileRouteTypes {
     | '/ai-chat'
     | '/forum'
     | '/home'
+    | '/mechanic-panel'
     | '/profile'
+    | '/quotes'
     | '/settings'
     | '/garage/new'
     | '/garage'
@@ -173,7 +196,9 @@ export interface FileRouteTypes {
     | '/_authenticated/ai-chat'
     | '/_authenticated/forum'
     | '/_authenticated/home'
+    | '/_authenticated/mechanic-panel'
     | '/_authenticated/profile'
+    | '/_authenticated/quotes'
     | '/_authenticated/settings'
     | '/_authenticated/garage/new'
     | '/_authenticated/garage/'
@@ -239,11 +264,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/quotes': {
+      id: '/_authenticated/quotes'
+      path: '/quotes'
+      fullPath: '/quotes'
+      preLoaderRoute: typeof AuthenticatedQuotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mechanic-panel': {
+      id: '/_authenticated/mechanic-panel'
+      path: '/mechanic-panel'
+      fullPath: '/mechanic-panel'
+      preLoaderRoute: typeof AuthenticatedMechanicPanelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/home': {
@@ -288,7 +327,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiChatRoute: typeof AuthenticatedAiChatRoute
   AuthenticatedForumRoute: typeof AuthenticatedForumRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedMechanicPanelRoute: typeof AuthenticatedMechanicPanelRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedQuotesRoute: typeof AuthenticatedQuotesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedGarageNewRoute: typeof AuthenticatedGarageNewRoute
   AuthenticatedGarageIndexRoute: typeof AuthenticatedGarageIndexRoute
@@ -298,7 +339,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiChatRoute: AuthenticatedAiChatRoute,
   AuthenticatedForumRoute: AuthenticatedForumRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedMechanicPanelRoute: AuthenticatedMechanicPanelRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedQuotesRoute: AuthenticatedQuotesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedGarageNewRoute: AuthenticatedGarageNewRoute,
   AuthenticatedGarageIndexRoute: AuthenticatedGarageIndexRoute,
