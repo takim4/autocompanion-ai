@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
-import { getMyProfile } from "@/lib/garage.functions";
+
 import {
   SPECIALTIES,
   SPECIALTY_LABELS,
@@ -42,16 +42,14 @@ export function MechanicSuggestions({
   vehicleId?: string | null;
 }) {
   const listFn = useServerFn(listNearbyMechanics);
-  const profileFn = useServerFn(getMyProfile);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     () => readCached(conversationId),
   );
   const [manualCity, setManualCity] = useState<string | null>(null);
   const [askingLocation, setAskingLocation] = useState(false);
 
-  const meQ = useQuery({ queryKey: ["me"], queryFn: () => profileFn() });
-  const cityFromProfile = (meQ.data as { city?: string | null } | undefined)?.city ?? null;
-  const effectiveCity = manualCity ?? cityFromProfile;
+  const effectiveCity = manualCity;
+
 
   const listQ = useQuery({
     queryKey: [
