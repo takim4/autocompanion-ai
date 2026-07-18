@@ -13,7 +13,7 @@ const VehicleInput = z.object({
   transmission: z
     .enum(["manual", "automatic", "semi_automatic", "cvt", "dct"])
     .optional(),
-  engine_cc: z.number().int().min(0).max(10000).optional(),
+  engine_cc: z.number().finite().transform((v) => Math.round(v)).pipe(z.number().int().min(0).max(10000)).optional(),
   engine_code: z.string().max(40).optional(),
   nickname: z.string().max(60).optional(),
   color: z.string().max(40).optional(),
