@@ -18,10 +18,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedGarageRouteImport } from './routes/_authenticated/garage'
 import { Route as AuthenticatedForumRouteImport } from './routes/_authenticated/forum'
 import { Route as AuthenticatedAiChatRouteImport } from './routes/_authenticated/ai-chat'
-import { Route as AuthenticatedGarageNewRouteImport } from './routes/_authenticated/garage/new'
+import { Route as AuthenticatedGarageIndexRouteImport } from './routes/_authenticated/garage.index'
+import { Route as AuthenticatedGarageNewRouteImport } from './routes/_authenticated/garage.new'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -67,11 +67,6 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGarageRoute = AuthenticatedGarageRouteImport.update({
-  id: '/garage',
-  path: '/garage',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedForumRoute = AuthenticatedForumRouteImport.update({
   id: '/forum',
   path: '/forum',
@@ -82,10 +77,16 @@ const AuthenticatedAiChatRoute = AuthenticatedAiChatRouteImport.update({
   path: '/ai-chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGarageIndexRoute =
+  AuthenticatedGarageIndexRouteImport.update({
+    id: '/garage/',
+    path: '/garage/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGarageNewRoute = AuthenticatedGarageNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AuthenticatedGarageRoute,
+  id: '/garage/new',
+  path: '/garage/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -96,11 +97,11 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/forum': typeof AuthenticatedForumRoute
-  '/garage': typeof AuthenticatedGarageRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
+  '/garage/': typeof AuthenticatedGarageIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,11 +111,11 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/forum': typeof AuthenticatedForumRoute
-  '/garage': typeof AuthenticatedGarageRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
+  '/garage': typeof AuthenticatedGarageIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -126,11 +127,11 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ai-chat': typeof AuthenticatedAiChatRoute
   '/_authenticated/forum': typeof AuthenticatedForumRoute
-  '/_authenticated/garage': typeof AuthenticatedGarageRouteWithChildren
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/garage/new': typeof AuthenticatedGarageNewRoute
+  '/_authenticated/garage/': typeof AuthenticatedGarageIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,11 +143,11 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ai-chat'
     | '/forum'
-    | '/garage'
     | '/home'
     | '/profile'
     | '/settings'
     | '/garage/new'
+    | '/garage/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -156,11 +157,11 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ai-chat'
     | '/forum'
-    | '/garage'
     | '/home'
     | '/profile'
     | '/settings'
     | '/garage/new'
+    | '/garage'
   id:
     | '__root__'
     | '/'
@@ -171,11 +172,11 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/ai-chat'
     | '/_authenticated/forum'
-    | '/_authenticated/garage'
     | '/_authenticated/home'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/_authenticated/garage/new'
+    | '/_authenticated/garage/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -252,13 +253,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/garage': {
-      id: '/_authenticated/garage'
-      path: '/garage'
-      fullPath: '/garage'
-      preLoaderRoute: typeof AuthenticatedGarageRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/forum': {
       id: '/_authenticated/forum'
       path: '/forum'
@@ -273,43 +267,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/garage/': {
+      id: '/_authenticated/garage/'
+      path: '/garage'
+      fullPath: '/garage/'
+      preLoaderRoute: typeof AuthenticatedGarageIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/garage/new': {
       id: '/_authenticated/garage/new'
-      path: '/new'
+      path: '/garage/new'
       fullPath: '/garage/new'
       preLoaderRoute: typeof AuthenticatedGarageNewRouteImport
-      parentRoute: typeof AuthenticatedGarageRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface AuthenticatedGarageRouteChildren {
-  AuthenticatedGarageNewRoute: typeof AuthenticatedGarageNewRoute
-}
-
-const AuthenticatedGarageRouteChildren: AuthenticatedGarageRouteChildren = {
-  AuthenticatedGarageNewRoute: AuthenticatedGarageNewRoute,
-}
-
-const AuthenticatedGarageRouteWithChildren =
-  AuthenticatedGarageRoute._addFileChildren(AuthenticatedGarageRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiChatRoute: typeof AuthenticatedAiChatRoute
   AuthenticatedForumRoute: typeof AuthenticatedForumRoute
-  AuthenticatedGarageRoute: typeof AuthenticatedGarageRouteWithChildren
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedGarageNewRoute: typeof AuthenticatedGarageNewRoute
+  AuthenticatedGarageIndexRoute: typeof AuthenticatedGarageIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiChatRoute: AuthenticatedAiChatRoute,
   AuthenticatedForumRoute: AuthenticatedForumRoute,
-  AuthenticatedGarageRoute: AuthenticatedGarageRouteWithChildren,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedGarageNewRoute: AuthenticatedGarageNewRoute,
+  AuthenticatedGarageIndexRoute: AuthenticatedGarageIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

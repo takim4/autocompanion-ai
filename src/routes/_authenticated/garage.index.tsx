@@ -12,7 +12,7 @@ import {
 import { deleteVehicle, listVehicles } from "@/lib/garage.functions";
 import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/car-data";
 
-export const Route = createFileRoute("/_authenticated/garage")({
+export const Route = createFileRoute("/_authenticated/garage/")({
   component: GaragePage,
   head: () => ({ meta: [{ title: "Garajım — AutoSocial" }] }),
 });
