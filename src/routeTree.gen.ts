@@ -15,6 +15,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWhatsappHistoryRouteImport } from './routes/_authenticated/whatsapp-history'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated/quotes'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -54,6 +55,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWhatsappHistoryRoute =
+  AuthenticatedWhatsappHistoryRouteImport.update({
+    id: '/whatsapp-history',
+    path: '/whatsapp-history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -115,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
   '/garage/': typeof AuthenticatedGarageIndexRoute
 }
@@ -131,6 +139,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
   '/garage': typeof AuthenticatedGarageIndexRoute
 }
@@ -149,6 +158,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quotes': typeof AuthenticatedQuotesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
   '/_authenticated/garage/new': typeof AuthenticatedGarageNewRoute
   '/_authenticated/garage/': typeof AuthenticatedGarageIndexRoute
 }
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quotes'
     | '/settings'
+    | '/whatsapp-history'
     | '/garage/new'
     | '/garage/'
   fileRoutesByTo: FileRoutesByTo
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/quotes'
     | '/settings'
+    | '/whatsapp-history'
     | '/garage/new'
     | '/garage'
   id:
@@ -200,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/quotes'
     | '/_authenticated/settings'
+    | '/_authenticated/whatsapp-history'
     | '/_authenticated/garage/new'
     | '/_authenticated/garage/'
   fileRoutesById: FileRoutesById
@@ -256,6 +269,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/whatsapp-history': {
+      id: '/_authenticated/whatsapp-history'
+      path: '/whatsapp-history'
+      fullPath: '/whatsapp-history'
+      preLoaderRoute: typeof AuthenticatedWhatsappHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -331,6 +351,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedQuotesRoute: typeof AuthenticatedQuotesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedWhatsappHistoryRoute: typeof AuthenticatedWhatsappHistoryRoute
   AuthenticatedGarageNewRoute: typeof AuthenticatedGarageNewRoute
   AuthenticatedGarageIndexRoute: typeof AuthenticatedGarageIndexRoute
 }
@@ -343,6 +364,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedQuotesRoute: AuthenticatedQuotesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedWhatsappHistoryRoute: AuthenticatedWhatsappHistoryRoute,
   AuthenticatedGarageNewRoute: AuthenticatedGarageNewRoute,
   AuthenticatedGarageIndexRoute: AuthenticatedGarageIndexRoute,
 }

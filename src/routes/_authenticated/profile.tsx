@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Award, ChevronRight, FileText, User, Wrench } from "lucide-react";
+import { Award, ChevronRight, FileText, MessageCircle, User, Wrench } from "lucide-react";
 import { LoadingState } from "@/components/data-state";
 import { getMyProfile } from "@/lib/garage.functions";
 
@@ -47,6 +47,12 @@ function ProfilePage() {
           icon={<FileText className="h-4 w-4" />}
           title="Tekliflerim"
           desc="Ustalara gönderdiğin teklif istekleri ve gelen cevaplar."
+        />
+        <ProfileLink
+          to="/whatsapp-history"
+          icon={<MessageCircle className="h-4 w-4" />}
+          title="WhatsApp Geçmişi"
+          desc="Ustalara gönderdiğin teşhis mesajları, tarih ve usta bilgisiyle."
         />
         <ProfileLink
           to="/mechanic-panel"

@@ -5,6 +5,7 @@ import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-rea
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
 import { listVehicles } from "@/lib/garage.functions";
+import { logWhatsappMessage } from "@/lib/whatsapp-history.functions";
 
 import {
   SPECIALTIES,
@@ -269,6 +270,19 @@ function MechanicCard({
           href={`https://wa.me/${cleanWa}?text=${waText}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => {
+            void logWhatsappMessage({
+              data: {
+                mechanic_id: m.id,
+                vehicle_id: vehicleId ?? null,
+                conversation_id: conversationId,
+                phone: m.whatsapp ?? m.phone,
+                message,
+                diagnosis_snapshot: diagnosisSnapshot,
+                specialties,
+              },
+            }).catch(() => {});
+          }}
           className="inline-flex items-center gap-1 rounded-md bg-green-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-green-700"
         >
           <MessageCircle className="h-3 w-3" /> WhatsApp
