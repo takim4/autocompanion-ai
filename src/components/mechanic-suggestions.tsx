@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
+import { listVehicles } from "@/lib/garage.functions";
 
 import {
   SPECIALTIES,
   SPECIALTY_LABELS,
   TR_CITIES,
   formatDistanceKm,
+  buildMechanicMessage,
   type Specialty,
+  type VehicleForMessage,
 } from "@/lib/mechanic-data";
+
 
 type Mechanic = {
   id: string;
@@ -42,6 +46,7 @@ export function MechanicSuggestions({
   vehicleId?: string | null;
 }) {
   const listFn = useServerFn(listNearbyMechanics);
+  const vehiclesFn = useServerFn(listVehicles);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     () => readCached(conversationId),
   );
@@ -50,6 +55,18 @@ export function MechanicSuggestions({
 
   const effectiveCity = manualCity;
 
+  const vehiclesQ = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: () => vehiclesFn(),
+    enabled: !!vehicleId,
+    staleTime: 60_000,
+  });
+
+  const vehicle = useMemo<VehicleForMessage | null>(() => {
+    if (!vehicleId || !vehiclesQ.data) return null;
+    const v = vehiclesQ.data.find((x: { id: string }) => x.id === vehicleId);
+    return (v as VehicleForMessage | undefined) ?? null;
+  }, [vehicleId, vehiclesQ.data]);
 
   const listQ = useQuery({
     queryKey: [
@@ -68,6 +85,7 @@ export function MechanicSuggestions({
       }),
     enabled: !!(coords || effectiveCity),
   });
+
 
   const requestLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -168,6 +186,8 @@ export function MechanicSuggestions({
             diagnosisSnapshot={diagnosisSnapshot}
             conversationId={conversationId}
             vehicleId={vehicleId}
+            vehicle={vehicle}
+            specialties={specialties}
           />
         ))}
       </div>
@@ -180,16 +200,25 @@ function MechanicCard({
   diagnosisSnapshot,
   conversationId,
   vehicleId,
+  vehicle,
+  specialties,
 }: {
   mechanic: Mechanic;
   diagnosisSnapshot: string;
   conversationId: string;
   vehicleId?: string | null;
+  vehicle?: VehicleForMessage | null;
+  specialties: Specialty[];
 }) {
   const [openQuote, setOpenQuote] = useState(false);
-  const waText = encodeURIComponent(
-    `Merhaba, AutoSocial üzerinden ulaşıyorum. Aracımla ilgili şu sorun için fiyat teklifi almak istiyorum:\n\n${diagnosisSnapshot.slice(0, 400)}`,
-  );
+  const message = buildMechanicMessage({
+    businessName: m.business_name,
+    vehicle,
+    diagnosis: diagnosisSnapshot,
+    specialties,
+  });
+  const waText = encodeURIComponent(message);
+
   const cleanPhone = m.phone.replace(/[^\d+]/g, "");
   const cleanWa = (m.whatsapp ?? m.phone).replace(/[^\d+]/g, "").replace(/^\+/, "");
 
