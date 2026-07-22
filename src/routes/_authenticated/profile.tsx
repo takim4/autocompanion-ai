@@ -49,6 +49,12 @@ function ProfilePage() {
           desc="Ustalara gönderdiğin teklif istekleri ve gelen cevaplar."
         />
         <ProfileLink
+          to="/whatsapp-history"
+          icon={<MessageCircle className="h-4 w-4" />}
+          title="WhatsApp Geçmişi"
+          desc="Ustalara gönderdiğin teşhis mesajları, tarih ve usta bilgisiyle."
+        />
+        <ProfileLink
           to="/mechanic-panel"
           icon={<Wrench className="h-4 w-4" />}
           title="Usta Paneli"
