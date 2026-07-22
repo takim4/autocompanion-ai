@@ -28,7 +28,83 @@ function HomePage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Hikayeler + akış kısayolu */}
+      <section className="-mx-4 border-b border-border bg-card/40 px-4 py-3">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Hikayeler & Canlı
+          </h3>
+          <Button asChild size="sm" variant="ghost" className="h-6 text-xs">
+            <Link to="/feed">
+              Akışı aç <Play className="ml-1 h-3 w-3" />
+            </Link>
+          </Button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          <Link
+            to="/feed"
+            className="flex shrink-0 flex-col items-center gap-1.5"
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-border bg-card">
+              <Plus className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <span className="text-[10px] text-muted-foreground">Ekle</span>
+          </Link>
+          {HOME_STORIES.map((s) => (
+            <Link
+              key={s.id}
+              to="/feed"
+              className="flex shrink-0 flex-col items-center gap-1.5"
+            >
+              <div
+                className={`rounded-full p-[2px] ${
+                  s.live
+                    ? "bg-gradient-to-tr from-red-500 to-orange-500"
+                    : "bg-gradient-to-tr from-primary via-accent to-primary"
+                }`}
+              >
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-background bg-card text-xl">
+                  {s.avatar}
+                  {s.live && (
+                    <span className="absolute -bottom-1 rounded-sm bg-red-600 px-1 text-[8px] font-bold text-white">
+                      CANLI
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="max-w-[56px] truncate text-[10px]">{s.user}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Reels & Canlı kısayol kartları */}
+      <section className="grid gap-3 sm:grid-cols-2">
+        <Link
+          to="/feed"
+          className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-red-600 to-purple-900 p-5"
+        >
+          <Play className="h-8 w-8 text-white/90" />
+          <p className="mt-3 text-lg font-bold text-white">Reels</p>
+          <p className="text-xs text-white/80">Otomobil videoları — dikey akış</p>
+        </Link>
+        <Link
+          to="/feed"
+          className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 to-slate-900 p-5"
+        >
+          <div className="flex items-center gap-2">
+            <Radio className="h-8 w-8 text-white/90" />
+            <span className="flex items-center gap-1 rounded bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+              2 CANLI
+            </span>
+          </div>
+          <p className="mt-3 text-lg font-bold text-white">Canlı Yayınlar</p>
+          <p className="text-xs text-white/80">Ustalarla anlık soru & cevap</p>
+        </Link>
+      </section>
+
       {/* AI arıza kutusu */}
       <section className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-accent/5 p-6">
         <div className="flex items-start gap-4">
