@@ -22,6 +22,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedMechanicPanelRouteImport } from './routes/_authenticated/mechanic-panel'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedForumRouteImport } from './routes/_authenticated/forum'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedAiChatRouteImport } from './routes/_authenticated/ai-chat'
 import { Route as AuthenticatedGarageIndexRouteImport } from './routes/_authenticated/garage.index'
 import { Route as AuthenticatedGarageNewRouteImport } from './routes/_authenticated/garage.new'
@@ -92,6 +93,11 @@ const AuthenticatedForumRoute = AuthenticatedForumRouteImport.update({
   path: '/forum',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAiChatRoute = AuthenticatedAiChatRouteImport.update({
   id: '/ai-chat',
   path: '/ai-chat',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
+  '/feed': typeof AuthenticatedFeedRoute
   '/forum': typeof AuthenticatedForumRoute
   '/home': typeof AuthenticatedHomeRoute
   '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
+  '/feed': typeof AuthenticatedFeedRoute
   '/forum': typeof AuthenticatedForumRoute
   '/home': typeof AuthenticatedHomeRoute
   '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ai-chat': typeof AuthenticatedAiChatRoute
+  '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/forum': typeof AuthenticatedForumRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/ai-chat'
+    | '/feed'
     | '/forum'
     | '/home'
     | '/mechanic-panel'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/ai-chat'
+    | '/feed'
     | '/forum'
     | '/home'
     | '/mechanic-panel'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/reset-password'
     | '/_authenticated/ai-chat'
+    | '/_authenticated/feed'
     | '/_authenticated/forum'
     | '/_authenticated/home'
     | '/_authenticated/mechanic-panel'
@@ -319,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedForumRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/feed': {
+      id: '/_authenticated/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AuthenticatedFeedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ai-chat': {
       id: '/_authenticated/ai-chat'
       path: '/ai-chat'
@@ -345,6 +364,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiChatRoute: typeof AuthenticatedAiChatRoute
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedForumRoute: typeof AuthenticatedForumRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMechanicPanelRoute: typeof AuthenticatedMechanicPanelRoute
@@ -358,6 +378,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiChatRoute: AuthenticatedAiChatRoute,
+  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedForumRoute: AuthenticatedForumRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMechanicPanelRoute: AuthenticatedMechanicPanelRoute,
