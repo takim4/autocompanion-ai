@@ -1,10 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Car, Plus, TrendingUp } from "lucide-react";
+import { Bot, Car, Play, Plus, Radio, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LoadingState, EmptyState, Skeleton } from "@/components/data-state";
+import { EmptyState, Skeleton } from "@/components/data-state";
 import { listVehicles } from "@/lib/garage.functions";
+
+const HOME_STORIES = [
+  { id: "1", user: "ahmet_gt", avatar: "🏎️", live: false },
+  { id: "2", user: "garaj42", avatar: "🔧", live: true },
+  { id: "3", user: "bmwlife", avatar: "🚗", live: false },
+  { id: "4", user: "dieselking", avatar: "⛽", live: false },
+  { id: "5", user: "elektrikci", avatar: "⚡", live: false },
+  { id: "6", user: "usta_mehmet", avatar: "🛠️", live: true },
+];
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
