@@ -5,6 +5,7 @@ import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-rea
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
 import { listVehicles } from "@/lib/garage.functions";
+import { logWhatsappMessage } from "@/lib/whatsapp-history.functions";
 
 import {
   SPECIALTIES,
