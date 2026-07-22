@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
+import { listVehicles } from "@/lib/garage.functions";
 
 import {
   SPECIALTIES,
   SPECIALTY_LABELS,
   TR_CITIES,
   formatDistanceKm,
+  buildMechanicMessage,
   type Specialty,
+  type VehicleForMessage,
 } from "@/lib/mechanic-data";
+
 
 type Mechanic = {
   id: string;
