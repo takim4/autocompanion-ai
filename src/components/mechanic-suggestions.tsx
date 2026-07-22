@@ -219,22 +219,6 @@ function MechanicCard({
   });
   const waText = encodeURIComponent(message);
 
-
-function MechanicCard({
-  mechanic: m,
-  diagnosisSnapshot,
-  conversationId,
-  vehicleId,
-}: {
-  mechanic: Mechanic;
-  diagnosisSnapshot: string;
-  conversationId: string;
-  vehicleId?: string | null;
-}) {
-  const [openQuote, setOpenQuote] = useState(false);
-  const waText = encodeURIComponent(
-    `Merhaba, AutoSocial üzerinden ulaşıyorum. Aracımla ilgili şu sorun için fiyat teklifi almak istiyorum:\n\n${diagnosisSnapshot.slice(0, 400)}`,
-  );
   const cleanPhone = m.phone.replace(/[^\d+]/g, "");
   const cleanWa = (m.whatsapp ?? m.phone).replace(/[^\d+]/g, "").replace(/^\+/, "");
 
