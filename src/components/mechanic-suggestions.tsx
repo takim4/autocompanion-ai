@@ -186,12 +186,39 @@ export function MechanicSuggestions({
             diagnosisSnapshot={diagnosisSnapshot}
             conversationId={conversationId}
             vehicleId={vehicleId}
+            vehicle={vehicle}
+            specialties={specialties}
           />
         ))}
       </div>
     </div>
   );
 }
+
+function MechanicCard({
+  mechanic: m,
+  diagnosisSnapshot,
+  conversationId,
+  vehicleId,
+  vehicle,
+  specialties,
+}: {
+  mechanic: Mechanic;
+  diagnosisSnapshot: string;
+  conversationId: string;
+  vehicleId?: string | null;
+  vehicle?: VehicleForMessage | null;
+  specialties: Specialty[];
+}) {
+  const [openQuote, setOpenQuote] = useState(false);
+  const message = buildMechanicMessage({
+    businessName: m.business_name,
+    vehicle,
+    diagnosis: diagnosisSnapshot,
+    specialties,
+  });
+  const waText = encodeURIComponent(message);
+
 
 function MechanicCard({
   mechanic: m,
