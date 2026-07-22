@@ -46,6 +46,7 @@ export function MechanicSuggestions({
   vehicleId?: string | null;
 }) {
   const listFn = useServerFn(listNearbyMechanics);
+  const vehiclesFn = useServerFn(listVehicles);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     () => readCached(conversationId),
   );
@@ -54,6 +55,18 @@ export function MechanicSuggestions({
 
   const effectiveCity = manualCity;
 
+  const vehiclesQ = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: () => vehiclesFn(),
+    enabled: !!vehicleId,
+    staleTime: 60_000,
+  });
+
+  const vehicle = useMemo<VehicleForMessage | null>(() => {
+    if (!vehicleId || !vehiclesQ.data) return null;
+    const v = vehiclesQ.data.find((x: { id: string }) => x.id === vehicleId);
+    return (v as VehicleForMessage | undefined) ?? null;
+  }, [vehicleId, vehiclesQ.data]);
 
   const listQ = useQuery({
     queryKey: [
@@ -72,6 +85,7 @@ export function MechanicSuggestions({
       }),
     enabled: !!(coords || effectiveCity),
   });
+
 
   const requestLocation = () => {
     if (!("geolocation" in navigator)) {
