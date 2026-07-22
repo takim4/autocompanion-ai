@@ -661,6 +661,67 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_messages: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          diagnosis_snapshot: string | null
+          id: string
+          mechanic_id: string
+          message: string
+          phone: string
+          specialties: string[]
+          user_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          diagnosis_snapshot?: string | null
+          id?: string
+          mechanic_id: string
+          message: string
+          phone: string
+          specialties?: string[]
+          user_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          diagnosis_snapshot?: string | null
+          id?: string
+          mechanic_id?: string
+          message?: string
+          phone?: string
+          specialties?: string[]
+          user_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
