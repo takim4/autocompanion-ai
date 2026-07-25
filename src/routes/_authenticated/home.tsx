@@ -42,21 +42,14 @@ function HomePage() {
           </Button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-1">
-          <Link
-            to="/feed"
-            className="flex shrink-0 flex-col items-center gap-1.5"
-          >
+          <Link to="/feed" className="flex shrink-0 flex-col items-center gap-1.5">
             <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-border bg-card">
               <Plus className="h-4 w-4 text-muted-foreground" />
             </div>
             <span className="text-[10px] text-muted-foreground">Ekle</span>
           </Link>
           {HOME_STORIES.map((s) => (
-            <Link
-              key={s.id}
-              to="/feed"
-              className="flex shrink-0 flex-col items-center gap-1.5"
-            >
+            <Link key={s.id} to="/feed" className="flex shrink-0 flex-col items-center gap-1.5">
               <div
                 className={`rounded-full p-[2px] ${
                   s.live
@@ -96,8 +89,7 @@ function HomePage() {
           <div className="flex items-center gap-2">
             <Radio className="h-8 w-8 text-white/90" />
             <span className="flex items-center gap-1 rounded bg-white/20 px-2 py-0.5 text-[10px] font-bold text-white">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-              2 CANLI
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />2 CANLI
             </span>
           </div>
           <p className="mt-3 text-lg font-bold text-white">Canlı Yayınlar</p>
@@ -114,10 +106,11 @@ function HomePage() {
           <div className="flex-1">
             <h2 className="text-lg font-semibold">Aracınla ilgili bir sorun mu var?</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Belirtileri anlat, AI teşhis + topluluk çözümü sıraya dizsin.
+              Sorununu Destek Asistanına anlat; ön çözüm alsın, gerekirse doğrulanmış bir ustaya
+              yönlendirsin.
             </p>
             <Button asChild className="mt-4">
-              <Link to="/ai-chat">AI Teşhis Başlat</Link>
+              <Link to="/ai-chat">Destek Asistanına Sor</Link>
             </Button>
           </div>
         </div>
