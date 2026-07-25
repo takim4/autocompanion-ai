@@ -66,7 +66,7 @@ export async function scrapeGoogleMapsPlaces(opts: {
   if (opts.customGeolocation) body.customGeolocation = opts.customGeolocation;
   if (opts.maxPlacesPerSearch) body.maxCrawledPlacesPerSearch = opts.maxPlacesPerSearch;
 
-  const res = await fetch(`https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items`, {
+  const res = await fetch(`https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items?memory=1024&timeout=180`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
