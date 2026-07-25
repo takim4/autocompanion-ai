@@ -217,7 +217,7 @@ export function MechanicSuggestions({
       )}
 
       <div className="space-y-2">
-        {(listQ.data ?? []).map((m) => (
+        {((listQ.data ?? []) as Mechanic[]).map((m) => (
           <MechanicCard
             key={m.id}
             mechanic={m as Mechanic}

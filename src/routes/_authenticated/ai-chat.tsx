@@ -18,6 +18,7 @@ import {
   parseSpecialtiesFromAI,
   parseStatusFromAI,
   SUPPORT_STATUS_LABELS,
+  type Specialty,
 } from "@/lib/mechanic-data";
 
 export const Route = createFileRoute("/_authenticated/ai-chat")({
@@ -231,7 +232,8 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
                 const statusNeedsMechanic =
                   status === "uzman_gerekli" || /\b(usta|servis|uzman|tamirci)\b/i.test(m.content);
                 const parsedSpecs = parseSpecialtiesFromAI(m.content);
-                const specs = parsedSpecs.length > 0 ? parsedSpecs : statusNeedsMechanic ? ["genel bakım"] : [];
+                const specs: Specialty[] =
+                  parsedSpecs.length > 0 ? parsedSpecs : statusNeedsMechanic ? ["genel bakım"] : [];
                 return (
                   <>
                     {status && (

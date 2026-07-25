@@ -46,6 +46,24 @@ const ListInput = z
 const MECHANIC_SELECT =
   "id, business_name, phone, whatsapp, address, city, district, lat, lng, specialties, brands, avg_rating, rating_count";
 
+type MechanicSearchRow = {
+  id: string;
+  business_name: string;
+  phone: string;
+  whatsapp: string | null;
+  address: string;
+  city: string;
+  district: string | null;
+  lat: number | null;
+  lng: number | null;
+  specialties: string[];
+  brands: string[];
+  avg_rating: number;
+  rating_count: number;
+};
+
+type MechanicSearchResult = MechanicSearchRow & { distance_km: number | null };
+
 const LIVE_SEARCH_RADIUS_KM = 25;
 const LIVE_SEARCH_MIN_RESULTS = 3;
 
@@ -72,19 +90,14 @@ function distanceKm(from: { lat: number; lng: number }, to: { lat: number; lng: 
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function sortMechanicsByDistance(rows: Array<Record<string, unknown>>, data: z.infer<typeof ListInput>) {
+function sortMechanicsByDistance(rows: MechanicSearchRow[], data: z.infer<typeof ListInput>) {
   const withDist = rows.map((r) => {
     let distance_km: number | null = null;
-    if (
-      data.lat != null &&
-      data.lng != null &&
-      typeof r.lat === "number" &&
-      typeof r.lng === "number"
-    ) {
+    if (data.lat != null && data.lng != null && r.lat != null && r.lng != null) {
       distance_km = distanceKm({ lat: data.lat, lng: data.lng }, { lat: r.lat, lng: r.lng });
     }
     return { ...r, distance_km };
-  });
+  }) satisfies MechanicSearchResult[];
 
   withDist.sort((a, b) => {
     if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
@@ -149,7 +162,7 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
 
       const { data: rows, error } = await q.limit(poolLimit);
       if (error) throw new Error(error.message);
-      return (rows ?? []) as Array<Record<string, unknown>>;
+      return (rows ?? []) as MechanicSearchRow[];
     };
 
     let rows = await fetchRows(client);
