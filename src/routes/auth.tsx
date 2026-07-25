@@ -99,6 +99,21 @@ function AuthPage() {
     defaultValues: { email: "", password: "", display_name: "" },
   });
 
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(REMEMBER_KEY);
+      if (saved) {
+        form.setValue("email", saved);
+        setRemember(true);
+      } else {
+        setRemember(false);
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function onSubmit(values: FormValues) {
     setBusy(true);
     try {
