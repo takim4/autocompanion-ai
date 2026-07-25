@@ -34,12 +34,14 @@ const MechanicProfileInput = z.object({
   active: z.boolean().optional(),
 });
 
-const ListInput = z.object({
-  city: z.string().max(60).optional().nullable(),
-  specialties: z.array(SpecialtyEnum).max(9).optional(),
-  brand: z.string().max(60).optional().nullable(),
-  limit: z.number().int().min(1).max(50).optional().default(15),
-}).merge(CoordSchema);
+const ListInput = z
+  .object({
+    city: z.string().max(60).optional().nullable(),
+    specialties: z.array(SpecialtyEnum).max(9).optional(),
+    brand: z.string().max(60).optional().nullable(),
+    limit: z.number().int().min(1).max(50).optional().default(15),
+  })
+  .merge(CoordSchema);
 
 export const listNearbyMechanics = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => ListInput.parse(i ?? {}))
@@ -287,6 +289,77 @@ export const respondQuote = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return row;
+  });
+
+export const getMyRoles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => r.role);
+  });
+
+const ImportInput = z.object({
+  query: z.string().min(2).max(100),
+  city: z.string().min(2).max(60),
+  specialty: SpecialtyEnum.optional().default("genel bakım"),
+  limit: z.number().int().min(1).max(50).optional().default(20),
+});
+
+/**
+ * Admin-only: Apify Google Maps Scraper ile gerçek usta/sanayi işletmesi verisi çeker ve
+ * `mechanics` tablosuna upsert eder (external_id = Google place_id, çakışmada günceller).
+ * Kullanıcı hesabı olmadığından bu satırlar user_id = NULL ile "sahipsiz" (source=google_maps) kaydedilir.
+ */
+export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ImportInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: adminRole, error: roleErr } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (roleErr) throw new Error(roleErr.message);
+    if (!adminRole) throw new Error("Bu işlem için admin yetkisi gerekli");
+
+    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const places = await scrapeGoogleMapsPlaces({
+      query: data.query,
+      city: data.city,
+      limit: data.limit,
+    });
+    const rows = toMechanicRows(places, data.city);
+    if (rows.length === 0) return { imported: 0 };
+
+    const { error } = await supabaseAdmin.from("mechanics").upsert(
+      rows.map((r) => ({
+        business_name: r.business_name,
+        phone: r.phone,
+        address: r.address,
+        city: r.city,
+        district: r.district,
+        lat: r.lat,
+        lng: r.lng,
+        avg_rating: r.avg_rating,
+        rating_count: r.rating_count,
+        external_id: r.external_id,
+        specialties: [data.specialty],
+        brands: [],
+        verified: true,
+        active: true,
+        source: "google_maps",
+      })),
+      { onConflict: "external_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { imported: rows.length };
   });
 
 export const updateQuoteStatus = createServerFn({ method: "POST" })

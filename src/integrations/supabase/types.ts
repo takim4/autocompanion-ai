@@ -257,6 +257,7 @@ export type Database = {
           created_at: string
           district: string | null
           email: string | null
+          external_id: string | null
           hours: Json | null
           id: string
           lat: number | null
@@ -264,9 +265,10 @@ export type Database = {
           owner_name: string | null
           phone: string
           rating_count: number
+          source: string
           specialties: string[]
           updated_at: string
-          user_id: string
+          user_id: string | null
           verified: boolean
           whatsapp: string | null
         }
@@ -281,6 +283,7 @@ export type Database = {
           created_at?: string
           district?: string | null
           email?: string | null
+          external_id?: string | null
           hours?: Json | null
           id?: string
           lat?: number | null
@@ -288,9 +291,10 @@ export type Database = {
           owner_name?: string | null
           phone: string
           rating_count?: number
+          source?: string
           specialties?: string[]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           verified?: boolean
           whatsapp?: string | null
         }
@@ -305,6 +309,7 @@ export type Database = {
           created_at?: string
           district?: string | null
           email?: string | null
+          external_id?: string | null
           hours?: Json | null
           id?: string
           lat?: number | null
@@ -312,13 +317,61 @@ export type Database = {
           owner_name?: string | null
           phone?: string
           rating_count?: number
+          source?: string
           specialties?: string[]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           verified?: boolean
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      fact_checks: {
+        Row: {
+          created_at: string
+          id: string
+          input_text: string | null
+          input_url: string | null
+          passed: boolean
+          score: number
+          target_type: string
+          user_id: string
+          vehicle_id: string | null
+          verdict: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_text?: string | null
+          input_url?: string | null
+          passed: boolean
+          score: number
+          target_type: string
+          user_id: string
+          vehicle_id?: string | null
+          verdict: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_text?: string | null
+          input_url?: string | null
+          passed?: boolean
+          score?: number
+          target_type?: string
+          user_id?: string
+          vehicle_id?: string | null
+          verdict?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fact_checks_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {

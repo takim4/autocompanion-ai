@@ -14,11 +14,15 @@ import {
 } from "@/lib/chat.functions";
 import { listVehicles } from "@/lib/garage.functions";
 import { MechanicSuggestions } from "@/components/mechanic-suggestions";
-import { parseSpecialtiesFromAI } from "@/lib/mechanic-data";
+import {
+  parseSpecialtiesFromAI,
+  parseStatusFromAI,
+  SUPPORT_STATUS_LABELS,
+} from "@/lib/mechanic-data";
 
 export const Route = createFileRoute("/_authenticated/ai-chat")({
   component: AiChatPage,
-  head: () => ({ meta: [{ title: "AI Teşhis — AutoSocial" }] }),
+  head: () => ({ meta: [{ title: "Destek Asistanı — AutoSocial" }] }),
 });
 
 function AiChatPage() {
@@ -61,10 +65,11 @@ function AiChatPage() {
       <header className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
-            <Bot className="h-6 w-6 text-primary" /> AI Teşhis
+            <Bot className="h-6 w-6 text-primary" /> Destek Asistanı
           </h1>
           <p className="text-xs text-muted-foreground">
-            Aracına özel yanıtlar için sohbet başlatırken bir araç seç.
+            Sorununu anlat, ön çözüm alalım; gerekirse yakınındaki doğrulanmış bir ustaya
+            yönlendirelim.
           </p>
         </div>
       </header>
@@ -135,7 +140,11 @@ function NewChatButton({
         onClick={() => setOpen((o) => !o)}
         className="inline-flex w-full items-center justify-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       >
-        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+        {loading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Plus className="h-3.5 w-3.5" />
+        )}
         Yeni sohbet
       </button>
       {open && (
@@ -181,8 +190,7 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
   });
 
   const sendMut = useMutation({
-    mutationFn: (content: string) =>
-      send({ data: { conversation_id: conversationId, content } }),
+    mutationFn: (content: string) => send({ data: { conversation_id: conversationId, content } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["conversation", conversationId] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
@@ -210,38 +218,45 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && !sendMut.isPending && (
           <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-            Aracının belirtisini, hata koduyla birlikte veya olabildiğince detaylı yaz. Örn:
-            "Soğuk çalıştırmada 1500 devirde titreşim, MIL yanıyor, P0301."
+            Aracının belirtisini, hata koduyla birlikte veya olabildiğince detaylı yaz. Örn: "Soğuk
+            çalıştırmada 1500 devirde titreşim, MIL yanıyor, P0301."
           </div>
         )}
         {messages.map((m) => (
           <div key={m.id}>
             <MessageBubble role={m.role} content={m.content} />
-            {m.role === "assistant" && (() => {
-              const specs = parseSpecialtiesFromAI(m.content);
-              if (specs.length === 0) return null;
-              return (
-                <MechanicSuggestions
-                  specialties={specs}
-                  diagnosisSnapshot={m.content}
-                  conversationId={conversationId}
-                  vehicleId={q.data?.conversation?.vehicle_id ?? null}
-                />
-              );
-            })()}
+            {m.role === "assistant" &&
+              (() => {
+                const status = parseStatusFromAI(m.content);
+                const specs = parseSpecialtiesFromAI(m.content);
+                return (
+                  <>
+                    {status && (
+                      <span className="ml-9 mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {SUPPORT_STATUS_LABELS[status]}
+                      </span>
+                    )}
+                    {specs.length > 0 && (
+                      <MechanicSuggestions
+                        specialties={specs}
+                        diagnosisSnapshot={m.content}
+                        conversationId={conversationId}
+                        vehicleId={q.data?.conversation?.vehicle_id ?? null}
+                      />
+                    )}
+                  </>
+                );
+              })()}
           </div>
         ))}
         {sendMut.isPending && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Teşhis Uzmanı yazıyor…
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Destek Asistanı yazıyor…
           </div>
         )}
       </div>
 
-      <form
-        onSubmit={submit}
-        className="flex items-end gap-2 border-t border-border p-3"
-      >
+      <form onSubmit={submit} className="flex items-end gap-2 border-t border-border p-3">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -282,9 +297,7 @@ function MessageBubble({ role, content }: { role: string; content: string }) {
       </div>
       <div
         className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-          isUser
-            ? "bg-secondary text-secondary-foreground"
-            : "bg-muted text-foreground"
+          isUser ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"
         }`}
       >
         {isUser ? (

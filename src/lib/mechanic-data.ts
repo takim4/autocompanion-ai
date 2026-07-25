@@ -34,19 +34,107 @@ export function parseSpecialtiesFromAI(text: string): Specialty[] {
     .filter((s): s is Specialty => (SPECIALTIES as readonly string[]).includes(s));
 }
 
+export type SupportStatus = "çözüldü" | "ön_çözüm_sunuldu" | "uzman_gerekli";
+
+export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
+  çözüldü: "✅ Çözüldü",
+  ön_çözüm_sunuldu: "🔧 Ön çözüm sunuldu",
+  uzman_gerekli: "🧑‍🔧 Uzman gerekli",
+};
+
+/** Destek Asistanı cevabından "**Durum:** uzman_gerekli" satırını parse eder. */
+export function parseStatusFromAI(text: string): SupportStatus | null {
+  const m = text.match(/\*\*Durum:?\*\*\s*([^\n]+)/i);
+  if (!m) return null;
+  const v = m[1].trim().toLowerCase();
+  if (v.includes("uzman")) return "uzman_gerekli";
+  if (v.includes("çözüldü")) return "çözüldü";
+  if (v.includes("ön") && v.includes("çözüm")) return "ön_çözüm_sunuldu";
+  return null;
+}
+
 export const TR_CITIES = [
-  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya",
-  "Artvin", "Aydın", "Balıkesir", "Bilecik", "Bingöl", "Bitlis", "Bolu",
-  "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır",
-  "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun",
-  "Gümüşhane", "Hakkâri", "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir",
-  "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir", "Kocaeli", "Konya",
-  "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş",
-  "Nevşehir", "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop",
-  "Sivas", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Şanlıurfa", "Uşak",
-  "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman", "Kırıkkale",
-  "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük",
-  "Kilis", "Osmaniye", "Düzce",
+  "Adana",
+  "Adıyaman",
+  "Afyonkarahisar",
+  "Ağrı",
+  "Amasya",
+  "Ankara",
+  "Antalya",
+  "Artvin",
+  "Aydın",
+  "Balıkesir",
+  "Bilecik",
+  "Bingöl",
+  "Bitlis",
+  "Bolu",
+  "Burdur",
+  "Bursa",
+  "Çanakkale",
+  "Çankırı",
+  "Çorum",
+  "Denizli",
+  "Diyarbakır",
+  "Edirne",
+  "Elazığ",
+  "Erzincan",
+  "Erzurum",
+  "Eskişehir",
+  "Gaziantep",
+  "Giresun",
+  "Gümüşhane",
+  "Hakkâri",
+  "Hatay",
+  "Isparta",
+  "Mersin",
+  "İstanbul",
+  "İzmir",
+  "Kars",
+  "Kastamonu",
+  "Kayseri",
+  "Kırklareli",
+  "Kırşehir",
+  "Kocaeli",
+  "Konya",
+  "Kütahya",
+  "Malatya",
+  "Manisa",
+  "Kahramanmaraş",
+  "Mardin",
+  "Muğla",
+  "Muş",
+  "Nevşehir",
+  "Niğde",
+  "Ordu",
+  "Rize",
+  "Sakarya",
+  "Samsun",
+  "Siirt",
+  "Sinop",
+  "Sivas",
+  "Tekirdağ",
+  "Tokat",
+  "Trabzon",
+  "Tunceli",
+  "Şanlıurfa",
+  "Uşak",
+  "Van",
+  "Yozgat",
+  "Zonguldak",
+  "Aksaray",
+  "Bayburt",
+  "Karaman",
+  "Kırıkkale",
+  "Batman",
+  "Şırnak",
+  "Bartın",
+  "Ardahan",
+  "Iğdır",
+  "Yalova",
+  "Karabük",
+  "Kilis",
+  "Osmaniye",
+  "Düzce",
 ] as const;
 
 /** Haversine mesafesi (km) — Postgres tarafında hesaplandığı için client-side sadece format. */
@@ -98,10 +186,7 @@ export function extractDiagnosisSummary(text: string, maxLen = 500): string {
 function formatVehicleLine(v?: VehicleForMessage | null): string | null {
   if (!v) return null;
   const bits = [`${v.year} ${v.brand} ${v.model}`];
-  const engine = [
-    v.engine_cc ? `${v.engine_cc}cc` : null,
-    v.engine_code ? v.engine_code : null,
-  ]
+  const engine = [v.engine_cc ? `${v.engine_cc}cc` : null, v.engine_code ? v.engine_code : null]
     .filter(Boolean)
     .join(" ");
   if (engine) bits.push(engine);
@@ -134,9 +219,7 @@ export function buildMechanicMessage(opts: {
   }
 
   if (specialties && specialties.length > 0) {
-    lines.push(
-      `🔧 İlgili uzmanlık: ${specialties.map((s) => SPECIALTY_LABELS[s]).join(", ")}`,
-    );
+    lines.push(`🔧 İlgili uzmanlık: ${specialties.map((s) => SPECIALTY_LABELS[s]).join(", ")}`);
   }
 
   const summary = extractDiagnosisSummary(diagnosis, 600);
@@ -150,4 +233,3 @@ export function buildMechanicMessage(opts: {
   lines.push("Bu sorun için fiyat teklifi ve uygun randevu alabilir miyim?");
   return lines.join("\n");
 }
-

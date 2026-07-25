@@ -88,9 +88,6 @@ export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => SendMessageInput.parse(i))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY eksik");
-
     // Konuşma sahipliği kontrolü + araç bağlamı
     const { data: conv, error: convErr } = await context.supabase
       .from("conversations")
@@ -109,7 +106,8 @@ export const sendMessage = createServerFn({ method: "POST" })
         .eq("id", conv.vehicle_id)
         .maybeSingle();
       if (v) {
-        vehicleContext = `\n\nKullanıcının aracı: ${v.year} ${v.brand} ${v.model}` +
+        vehicleContext =
+          `\n\nKullanıcının aracı: ${v.year} ${v.brand} ${v.model}` +
           (v.engine_cc ? ` ${v.engine_cc}cc` : "") +
           (v.engine_code ? ` (${v.engine_code})` : "") +
           (v.fuel ? `, yakıt: ${v.fuel}` : "") +
@@ -137,17 +135,18 @@ export const sendMessage = createServerFn({ method: "POST" })
     });
     if (insErr) throw new Error(insErr.message);
 
-    const { createLovableAiGatewayProvider, DEFAULT_CHAT_MODEL, DIAGNOSTICIAN_SYSTEM_PROMPT } =
-      await import("./ai-gateway.server");
+    const { geminiProvider, SUPPORT_CHAT_MODEL, friendlyGeminiError } =
+      await import("./gemini.server");
+    const { SUPPORT_AGENT_SYSTEM_PROMPT } = await import("./support-agent.server");
     const { generateText } = await import("ai");
 
-    const gateway = createLovableAiGatewayProvider(apiKey);
-    const model = gateway(DEFAULT_CHAT_MODEL);
+    const gemini = geminiProvider();
+    const model = gemini(SUPPORT_CHAT_MODEL);
 
     try {
       const { text } = await generateText({
         model,
-        system: DIAGNOSTICIAN_SYSTEM_PROMPT + vehicleContext,
+        system: SUPPORT_AGENT_SYSTEM_PROMPT + vehicleContext,
         messages: [
           ...(history ?? []).map((m) => ({
             role: m.role as "user" | "assistant",
@@ -185,10 +184,6 @@ export const sendMessage = createServerFn({ method: "POST" })
 
       return { assistant: assistantRow };
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (msg.includes("429")) throw new Error("AI kotası doldu, lütfen biraz sonra tekrar deneyin.");
-      if (msg.includes("402"))
-        throw new Error("Lovable AI kredisi tükendi. Workspace ayarlarından kredi yükleyin.");
-      throw new Error("AI cevabı üretilemedi: " + msg);
+      throw friendlyGeminiError(e, "AI cevabı üretilemedi");
     }
   });
