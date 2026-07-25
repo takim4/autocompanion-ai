@@ -54,9 +54,8 @@ export function MechanicSuggestions({
   const importNearbyFn = useServerFn(importNearbyMechanicsFromGoogleMaps);
   const vehiclesFn = useServerFn(listVehicles);
   const queryClient = useQueryClient();
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
-    () => readCached(conversationId),
-  );
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
   const [manualCity, setManualCity] = useState<string | null>(null);
   const [askingLocation, setAskingLocation] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
