@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Moon, Settings, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/stores/theme-store";
+import logoAsset from "@/assets/autosocial-logo.png.asset.json";
 
 export function TopBar({ title }: { title?: string }) {
   const { theme, setTheme } = useThemeStore();
@@ -9,9 +10,11 @@ export function TopBar({ title }: { title?: string }) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur">
       <Link to="/home" className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-          A
-        </div>
+        <img
+          src={logoAsset.url}
+          alt="AutoSocial"
+          className="h-8 w-8 rounded-lg object-cover"
+        />
         <span className="font-semibold tracking-tight">
           {title ?? "AutoSocial"}
         </span>
