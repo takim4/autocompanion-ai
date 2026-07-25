@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-react";
+import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
 import { listVehicles } from "@/lib/garage.functions";
