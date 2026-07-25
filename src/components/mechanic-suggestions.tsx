@@ -246,8 +246,12 @@ export function MechanicSuggestions({
             onClick={() => {
               setCoords(null);
               setManualCity(null);
-              clearCached(conversationId);
+              setAccuracy(null);
+              autoTriedRef.current = false;
+              importTriedRef.current.clear();
+              requestLocation(false);
             }}
+
             className="hover:text-foreground"
           >
             Değiştir
