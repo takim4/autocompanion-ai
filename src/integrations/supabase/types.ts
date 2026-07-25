@@ -292,6 +292,39 @@ export type Database = {
         }
         Relationships: []
       }
+      mechanic_scrape_log: {
+        Row: {
+          cell_key: string
+          id: string
+          lat: number
+          lng: number
+          radius_km: number
+          result_count: number
+          scraped_at: string
+          specialties: string[]
+        }
+        Insert: {
+          cell_key: string
+          id?: string
+          lat: number
+          lng: number
+          radius_km: number
+          result_count?: number
+          scraped_at?: string
+          specialties?: string[]
+        }
+        Update: {
+          cell_key?: string
+          id?: string
+          lat?: number
+          lng?: number
+          radius_km?: number
+          result_count?: number
+          scraped_at?: string
+          specialties?: string[]
+        }
+        Relationships: []
+      }
       mechanics: {
         Row: {
           active: boolean
