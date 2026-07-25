@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, LogOut, Monitor, Moon, ShieldAlert, Sun } from "lucide-react";
+import { Loader2, LogOut, Monitor, Moon, ShieldAlert, Sun, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -119,11 +119,18 @@ function SettingsPage() {
       {rolesQ.data?.includes("admin") && (
         <section className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-base font-semibold">Admin</h2>
-          <Button asChild variant="outline" className="mt-4">
-            <Link to="/admin/reports">
-              <ShieldAlert className="mr-2 h-4 w-4" /> Şikayet Kuyruğu
-            </Link>
-          </Button>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link to="/admin/reports">
+                <ShieldAlert className="mr-2 h-4 w-4" /> Şikayet Kuyruğu
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/admin/mechanics">
+                <Wrench className="mr-2 h-4 w-4" /> Usta Konumları
+              </Link>
+            </Button>
+          </div>
         </section>
       )}
 

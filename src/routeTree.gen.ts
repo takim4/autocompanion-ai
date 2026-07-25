@@ -26,6 +26,7 @@ import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedWhatsappHistoryRouteImport } from './routes/_authenticated/whatsapp-history'
+import { Route as AuthenticatedAdminMechanicsRouteImport } from './routes/_authenticated/admin.mechanics'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedCommunitiesCommunityIdRouteImport } from './routes/_authenticated/communities.$communityId'
 import { Route as AuthenticatedForumThreadIdRouteImport } from './routes/_authenticated/forum.$threadId'
@@ -119,6 +120,12 @@ const AuthenticatedWhatsappHistoryRoute =
     path: '/whatsapp-history',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminMechanicsRoute =
+  AuthenticatedAdminMechanicsRouteImport.update({
+    id: '/admin/mechanics',
+    path: '/admin/mechanics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminReportsRoute =
   AuthenticatedAdminReportsRouteImport.update({
     id: '/admin/reports',
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/admin/mechanics': typeof AuthenticatedAdminMechanicsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/communities/$communityId': typeof AuthenticatedCommunitiesCommunityIdRoute
   '/forum/$threadId': typeof AuthenticatedForumThreadIdRoute
@@ -189,6 +197,7 @@ export interface FileRoutesByTo {
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/admin/mechanics': typeof AuthenticatedAdminMechanicsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/communities/$communityId': typeof AuthenticatedCommunitiesCommunityIdRoute
   '/forum/$threadId': typeof AuthenticatedForumThreadIdRoute
@@ -214,6 +223,7 @@ export interface FileRoutesById {
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/_authenticated/admin/mechanics': typeof AuthenticatedAdminMechanicsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/communities/$communityId': typeof AuthenticatedCommunitiesCommunityIdRoute
   '/_authenticated/forum/$threadId': typeof AuthenticatedForumThreadIdRoute
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/whatsapp-history'
+    | '/admin/mechanics'
     | '/admin/reports'
     | '/communities/$communityId'
     | '/forum/$threadId'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/settings'
     | '/whatsapp-history'
+    | '/admin/mechanics'
     | '/admin/reports'
     | '/communities/$communityId'
     | '/forum/$threadId'
@@ -286,6 +298,7 @@ export interface FileRouteTypes {
     | '/_authenticated/services'
     | '/_authenticated/settings'
     | '/_authenticated/whatsapp-history'
+    | '/_authenticated/admin/mechanics'
     | '/_authenticated/admin/reports'
     | '/_authenticated/communities/$communityId'
     | '/_authenticated/forum/$threadId'
@@ -423,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWhatsappHistoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/mechanics': {
+      id: '/_authenticated/admin/mechanics'
+      path: '/admin/mechanics'
+      fullPath: '/admin/mechanics'
+      preLoaderRoute: typeof AuthenticatedAdminMechanicsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/reports': {
       id: '/_authenticated/admin/reports'
       path: '/admin/reports'
@@ -499,6 +519,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedWhatsappHistoryRoute: typeof AuthenticatedWhatsappHistoryRoute
+  AuthenticatedAdminMechanicsRoute: typeof AuthenticatedAdminMechanicsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedGarageNewRoute: typeof AuthenticatedGarageNewRoute
   AuthenticatedGarageIndexRoute: typeof AuthenticatedGarageIndexRoute
@@ -516,6 +537,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedWhatsappHistoryRoute: AuthenticatedWhatsappHistoryRoute,
+  AuthenticatedAdminMechanicsRoute: AuthenticatedAdminMechanicsRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedGarageNewRoute: AuthenticatedGarageNewRoute,
   AuthenticatedGarageIndexRoute: AuthenticatedGarageIndexRoute,
