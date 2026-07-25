@@ -53,6 +53,7 @@ type FormValues = z.infer<typeof schema>;
 function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [busy, setBusy] = useState(false);
+  const [remember, setRemember] = useState(true);
   const redirectedRef = useRef(false);
   const router = useRouter();
   const search = Route.useSearch();
