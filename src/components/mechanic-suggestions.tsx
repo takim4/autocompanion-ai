@@ -136,29 +136,51 @@ export function MechanicSuggestions({
     }
     setAskingLocation(true);
     setGeoError(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+    let best: { lat: number; lng: number; acc: number } | null = null;
+    let finished = false;
+
+    const finish = (err?: GeolocationPositionError) => {
+      if (finished) return;
+      finished = true;
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      clearTimeout(timeoutId);
+      setAskingLocation(false);
+      if (best) {
+        const c = { lat: best.lat, lng: best.lng };
         setCoords(c);
-        setAccuracy(pos.coords.accuracy);
+        setAccuracy(best.acc);
         writeCached(conversationId, c);
-        setAskingLocation(false);
+        if (best.acc > 500 && !silent) {
+          toast.info(`Konum kabaca alındı (±${Math.round(best.acc)} m). Daha net için 'Değiştir' → tekrar dene.`);
+        }
+        return;
+      }
+      const msg =
+        err?.code === err?.PERMISSION_DENIED
+          ? "Konum izni reddedildi. Tarayıcı adres çubuğundaki 🔒 simgesinden izin verebilir ya da aşağıdan şehir seçebilirsin."
+          : err?.code === err?.POSITION_UNAVAILABLE
+            ? "Konum alınamadı (sinyal yok). Şehir seçerek devam edebilirsin."
+            : "Konum zaman aşımına uğradı. Şehir seçerek devam edebilirsin.";
+      setGeoError(msg);
+      if (!silent) toast.info(msg);
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const acc = pos.coords.accuracy;
+        if (!best || acc < best.acc) {
+          best = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc };
+        }
+        // Yeterince doğru bir fix alındıysa erken tamamla
+        if (best.acc <= 50) finish();
       },
-      (err) => {
-        setAskingLocation(false);
-        const msg =
-          err.code === err.PERMISSION_DENIED
-            ? "Konum izni reddedildi. Tarayıcı adres çubuğundaki 🔒 simgesinden izin verebilir ya da aşağıdan şehir seçebilirsin."
-            : err.code === err.POSITION_UNAVAILABLE
-              ? "Konum alınamadı (sinyal yok). Şehir seçerek devam edebilirsin."
-              : "Konum zaman aşımına uğradı. Şehir seçerek devam edebilirsin.";
-        setGeoError(msg);
-        if (!silent) toast.info(msg);
-        console.warn("geolocation", err);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      (err) => finish(err),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
+    const timeoutId = setTimeout(() => finish(), 12000);
   };
+
 
   // Sohbet açıldığında otomatik olarak net konumu iste (kullanıcı butona basmak zorunda kalmasın)
   useEffect(() => {
