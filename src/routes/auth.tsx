@@ -243,6 +243,18 @@ function AuthPage() {
               )}
             </div>
 
+            {mode === "login" && (
+              <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                Beni hatırla
+              </label>
+            )}
+
             <Button type="submit" className="w-full" size="lg" disabled={busy}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {mode === "login" ? "Giriş Yap" : "Kayıt Ol"}
