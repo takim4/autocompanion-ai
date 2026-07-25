@@ -53,6 +53,8 @@ export function MechanicSuggestions({
   );
   const [manualCity, setManualCity] = useState<string | null>(null);
   const [askingLocation, setAskingLocation] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const autoTriedRef = useRef(false);
 
   const effectiveCity = manualCity;
 
@@ -88,12 +90,14 @@ export function MechanicSuggestions({
   });
 
 
-  const requestLocation = () => {
+  const requestLocation = (silent = false) => {
     if (!("geolocation" in navigator)) {
-      toast.error("Tarayıcın konum desteklemiyor, şehir seçebilirsin.");
+      setGeoError("Tarayıcın konum desteklemiyor.");
+      if (!silent) toast.error("Tarayıcın konum desteklemiyor, şehir seçebilirsin.");
       return;
     }
     setAskingLocation(true);
+    setGeoError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -103,12 +107,28 @@ export function MechanicSuggestions({
       },
       (err) => {
         setAskingLocation(false);
-        toast.info("Konum reddedildi, şehir seçerek devam edebilirsin.");
-        console.warn(err);
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "Konum izni reddedildi. Tarayıcı adres çubuğundaki 🔒 simgesinden izin verebilir ya da aşağıdan şehir seçebilirsin."
+            : err.code === err.POSITION_UNAVAILABLE
+              ? "Konum alınamadı (sinyal yok). Şehir seçerek devam edebilirsin."
+              : "Konum zaman aşımına uğradı. Şehir seçerek devam edebilirsin.";
+        setGeoError(msg);
+        if (!silent) toast.info(msg);
+        console.warn("geolocation", err);
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60_000 },
     );
   };
+
+  // Sohbet açıldığında otomatik olarak net konumu iste (kullanıcı butona basmak zorunda kalmasın)
+  useEffect(() => {
+    if (autoTriedRef.current) return;
+    if (coords || effectiveCity) return;
+    autoTriedRef.current = true;
+    requestLocation(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mt-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
