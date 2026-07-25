@@ -168,7 +168,12 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
 
     const rows = await fetchRows(client);
     const sorted = sortMechanicsByDistance(rows, data);
-    return sorted.slice(0, data.limit);
+    // Konum verildiyse yalnızca gerçekten yakın olanları (≤ NEARBY_MAX_KM) döndür;
+    // aksi halde başka şehirdeki eski scrape sonuçları "en yakın" gibi görünür.
+    const filtered = hasCoords
+      ? sorted.filter((r) => r.distance_km != null && r.distance_km <= NEARBY_MAX_KM)
+      : sorted;
+    return filtered.slice(0, data.limit);
   });
 
 const LiveImportInput = z
