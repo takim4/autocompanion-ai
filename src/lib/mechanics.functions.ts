@@ -67,6 +67,15 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       },
     });
 
+    // Önemli: mesafeye (veya puana) göre sıralama Postgres tarafında değil,
+    // aşağıda JS'de yapılıyor. Bu yüzden `.limit(data.limit)` burada
+    // UYGULANMAMALI — aksi halde Postgres eşleşen kayıtlar arasından rastgele
+    // (sıralanmamış) bir alt küme döner, biz de "en yakın" ustayı hiç
+    // görmeden sadece o rastgele alt kümeyi mesafeye göre sıralamış oluruz.
+    // Bunun yerine eşleşen tüm adayları (makul bir güvenlik tavanıyla) çekip
+    // mesafeye/puana göre sıraladıktan SONRA istenen sayıya kırpıyoruz.
+    const CANDIDATE_POOL_CAP = 500;
+
     let q = client
       .from("mechanics")
       .select(
@@ -74,7 +83,7 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       )
       .eq("verified", true)
       .eq("active", true)
-      .limit(data.limit);
+      .limit(CANDIDATE_POOL_CAP);
 
     if (data.city) q = q.ilike("city", data.city);
     if (data.specialties && data.specialties.length > 0) {
@@ -108,7 +117,7 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       return (b.avg_rating ?? 0) - (a.avg_rating ?? 0);
     });
 
-    return withDist;
+    return withDist.slice(0, data.limit);
   });
 
 export const getMechanic = createServerFn({ method: "GET" })
