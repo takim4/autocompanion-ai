@@ -1,17 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import {
-  Heart,
-  MessageCircle,
-  Play,
-  Plus,
-  Radio,
-  Send,
-  Sparkles,
-  Volume2,
-  VolumeX,
-} from "lucide-react";
+import { useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Image as ImageIcon, Loader2, Plus, Radio, Search, User, Video } from "lucide-react";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { EmptyState, LoadingState } from "@/components/data-state";
+import { PostCard, CommentsSection } from "@/components/post-card";
+import {
+  createPost,
+  endLive,
+  followUser,
+  listFeedPosts,
+  listLivePosts,
+  searchProfiles,
+  startLive,
+  unfollowUser,
+} from "@/lib/social.functions";
+import { useAuth } from "@/hooks/use-auth";
+import { uploadToBucket } from "@/lib/uploads";
 
 export const Route = createFileRoute("/_authenticated/feed")({
   component: FeedPage,
@@ -20,151 +36,25 @@ export const Route = createFileRoute("/_authenticated/feed")({
       { title: "Akış — AutoSocial" },
       {
         name: "description",
-        content:
-          "Otomobil severlerin hikayeleri, reels videoları ve canlı yayınları tek akışta.",
-      },
-      { property: "og:title", content: "AutoSocial Akış" },
-      {
-        property: "og:description",
-        content: "Hikayeler, Reels ve canlı yayınlar.",
+        content: "Otomobil severlerin fotoğrafları, videoları ve canlı yayınları tek akışta.",
       },
     ],
   }),
 });
 
-type Tab = "reels" | "stories" | "live" | "profiles";
-
-const STORIES = [
-  { id: "1", user: "ahmet_gt", avatar: "🏎️", live: false, seen: false },
-  { id: "2", user: "garaj42", avatar: "🔧", live: true, seen: false },
-  { id: "3", user: "bmwlife", avatar: "🚗", live: false, seen: false },
-  { id: "4", user: "dieselking", avatar: "⛽", live: false, seen: true },
-  { id: "5", user: "elektrikci_ali", avatar: "⚡", live: false, seen: false },
-  { id: "6", user: "usta_mehmet", avatar: "🛠️", live: true, seen: false },
-  { id: "7", user: "drift_kral", avatar: "💨", live: false, seen: true },
-  { id: "8", user: "motorsporu", avatar: "🏁", live: false, seen: false },
-];
-
-const REELS = [
-  {
-    id: "r1",
-    user: "@drift_kral",
-    caption: "M3 ile gece turu — Boğaz köprüsü 🌉",
-    likes: 12400,
-    comments: 342,
-    bg: "from-orange-500 via-red-600 to-purple-900",
-    tag: "Drift",
-  },
-  {
-    id: "r2",
-    user: "@usta_mehmet",
-    caption: "Turbo değişimi nasıl yapılır — 60 saniyede özet 🔧",
-    likes: 8900,
-    comments: 512,
-    bg: "from-slate-800 via-blue-900 to-cyan-700",
-    tag: "Tamir",
-  },
-  {
-    id: "r3",
-    user: "@garaj42",
-    caption: "E46 restorasyonu bitti! Öncesi/sonrası 😍",
-    likes: 24100,
-    comments: 891,
-    bg: "from-emerald-700 via-teal-800 to-slate-900",
-    tag: "Resto",
-  },
-  {
-    id: "r4",
-    user: "@elektrikci_ali",
-    caption: "EV bakımı — 5 altın kural ⚡",
-    likes: 5600,
-    comments: 128,
-    bg: "from-yellow-500 via-orange-700 to-rose-800",
-    tag: "EV",
-  },
-];
-
-const LIVE = [
-  {
-    id: "l1",
-    user: "garaj42",
-    title: "🔴 CANLI: Motor sesinden arıza teşhisi",
-    viewers: 1243,
-    bg: "from-red-600 to-slate-900",
-  },
-  {
-    id: "l2",
-    user: "usta_mehmet",
-    title: "🔴 Fren balata değişimi — Soru cevap",
-    viewers: 487,
-    bg: "from-blue-700 to-black",
-  },
-  {
-    id: "l3",
-    user: "motorsporu",
-    title: "🔴 F1 sıralama turları — Yorum",
-    viewers: 3210,
-    bg: "from-purple-700 to-red-900",
-  },
-];
-
-const PROFILES = [
-  { id: "p1", user: "ahmet_gt", name: "Ahmet Y.", followers: "12.4K", cars: 3, avatar: "🏎️" },
-  { id: "p2", user: "garaj42", name: "Garaj 42", followers: "89K", cars: 12, avatar: "🔧" },
-  { id: "p3", user: "bmwlife", name: "BMW Life TR", followers: "45.2K", cars: 5, avatar: "🚗" },
-  { id: "p4", user: "elektrikci_ali", name: "Ali Elektrik", followers: "7.8K", cars: 2, avatar: "⚡" },
-  { id: "p5", user: "usta_mehmet", name: "Usta Mehmet", followers: "22K", cars: 1, avatar: "🛠️" },
-  { id: "p6", user: "drift_kral", name: "Drift Kral", followers: "156K", cars: 4, avatar: "💨" },
-];
+type Tab = "posts" | "live" | "profiles";
 
 function FeedPage() {
-  const [tab, setTab] = useState<Tab>("reels");
+  const [tab, setTab] = useState<Tab>("posts");
 
   return (
     <div className="-mx-4 -my-6">
-      {/* Stories bar */}
-      <div className="border-b border-border bg-card/50 px-4 py-3">
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          <button className="flex shrink-0 flex-col items-center gap-1.5">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-border bg-card">
-              <Plus className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <span className="text-[10px] text-muted-foreground">Senin hikayen</span>
-          </button>
-          {STORIES.map((s) => (
-            <button key={s.id} className="flex shrink-0 flex-col items-center gap-1.5">
-              <div
-                className={`rounded-full p-[2px] ${
-                  s.live
-                    ? "bg-gradient-to-tr from-red-500 to-orange-500"
-                    : s.seen
-                    ? "bg-muted"
-                    : "bg-gradient-to-tr from-primary via-accent to-primary"
-                }`}
-              >
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-background bg-card text-2xl">
-                  {s.avatar}
-                  {s.live && (
-                    <span className="absolute -bottom-1 rounded-sm bg-red-600 px-1.5 text-[9px] font-bold text-white">
-                      CANLI
-                    </span>
-                  )}
-                </div>
-              </div>
-              <span className="max-w-[64px] truncate text-[10px]">{s.user}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="sticky top-0 z-10 flex border-b border-border bg-background/95 backdrop-blur">
+      <div className="sticky top-0 z-10 flex items-center border-b border-border bg-background/95 backdrop-blur">
         {(
           [
-            { id: "reels", label: "Reels", icon: Play },
-            { id: "stories", label: "Hikayeler", icon: Sparkles },
+            { id: "posts", label: "Gönderiler", icon: ImageIcon },
             { id: "live", label: "Canlı", icon: Radio },
-            { id: "profiles", label: "Profiller", icon: Heart },
+            { id: "profiles", label: "Keşfet", icon: Search },
           ] as const
         ).map((t) => {
           const Icon = t.icon;
@@ -184,145 +74,377 @@ function FeedPage() {
             </button>
           );
         })}
+        <div className="pr-3">
+          <PostComposerDialog />
+        </div>
       </div>
 
       <div className="p-4">
-        {tab === "reels" && <ReelsGrid />}
-        {tab === "stories" && <StoriesGrid />}
-        {tab === "live" && <LiveGrid />}
-        {tab === "profiles" && <ProfilesGrid />}
+        {tab === "posts" && <PostsTab />}
+        {tab === "live" && <LiveTab />}
+        {tab === "profiles" && <ProfilesTab />}
       </div>
     </div>
   );
 }
 
-function ReelsGrid() {
-  const [muted, setMuted] = useState(true);
+function PostsTab() {
+  const fn = useServerFn(listFeedPosts);
+  const q = useQuery({ queryKey: ["feed"], queryFn: () => fn({ data: {} }) });
+
+  if (q.isLoading) return <LoadingState />;
+  if (!q.data || q.data.length === 0) {
+    return (
+      <EmptyState
+        title="Henüz gönderi yok"
+        description="İlk fotoğraf, video veya paylaşımı sen yap."
+        icon={ImageIcon}
+      />
+    );
+  }
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {REELS.map((r) => (
-        <div
-          key={r.id}
-          className={`group relative aspect-[9/16] overflow-hidden rounded-xl bg-gradient-to-br ${r.bg}`}
-        >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Play className="h-14 w-14 text-white/80 drop-shadow-lg transition group-hover:scale-110" />
+      {q.data.map((post) => (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <PostCard key={post.id as string} post={post as any} queryKey={["feed"]} />
+      ))}
+    </div>
+  );
+}
+
+function PostComposerDialog() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState<"text" | "image" | "video">("text");
+  const [caption, setCaption] = useState("");
+  const [tag, setTag] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const fn = useServerFn(createPost);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      let media_urls: string[] = [];
+      if (type !== "text") {
+        if (!file) throw new Error("Bir dosya seçmelisiniz");
+        if (!user) throw new Error("Oturum bulunamadı");
+        setUploading(true);
+        const url = await uploadToBucket("posts", file, user.id);
+        media_urls = [url];
+      }
+      return fn({ data: { type, caption: caption || null, media_urls, tag: tag || null } });
+    },
+    onSuccess: () => {
+      toast.success("Paylaşıldı!");
+      setOpen(false);
+      setCaption("");
+      setTag("");
+      setFile(null);
+      qc.invalidateQueries({ queryKey: ["feed"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setUploading(false),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="icon" className="h-8 w-8 rounded-full" aria-label="Gönderi oluştur">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Yeni gönderi</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="flex gap-1.5">
+            {(
+              [
+                ["text", "Metin"],
+                ["image", "Fotoğraf"],
+                ["video", "Video"],
+              ] as const
+            ).map(([v, l]) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => {
+                  setType(v);
+                  setFile(null);
+                }}
+                className={`flex-1 rounded-md border px-2 py-1.5 text-xs ${
+                  type === v
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-background hover:bg-accent"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
           </div>
-          <span className="absolute left-2 top-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
-            {r.tag}
-          </span>
-          <button
-            onClick={() => setMuted((m) => !m)}
-            className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white backdrop-blur"
-          >
-            {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-          </button>
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-            <p className="text-xs font-semibold text-white">{r.user}</p>
-            <p className="mt-0.5 line-clamp-2 text-[11px] text-white/90">{r.caption}</p>
-            <div className="mt-2 flex gap-3 text-[11px] text-white/90">
-              <span className="flex items-center gap-1">
-                <Heart className="h-3 w-3" /> {formatK(r.likes)}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageCircle className="h-3 w-3" /> {r.comments}
-              </span>
-              <span className="ml-auto flex items-center gap-1">
-                <Send className="h-3 w-3" />
-              </span>
+
+          {type !== "text" && (
+            <div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-border py-6 text-xs text-muted-foreground hover:bg-accent"
+              >
+                {type === "image" ? (
+                  <ImageIcon className="h-4 w-4" />
+                ) : (
+                  <Video className="h-4 w-4" />
+                )}
+                {file ? file.name : "Dosya seç"}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept={type === "image" ? "image/*" : "video/*"}
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
             </div>
-          </div>
+          )}
+
+          <textarea
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            rows={3}
+            maxLength={2200}
+            placeholder="Ne düşünüyorsun?"
+            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          />
+          <input
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            maxLength={40}
+            placeholder="Etiket (opsiyonel, örn. Drift, Tamir)"
+            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          />
         </div>
-      ))}
+        <DialogFooter>
+          <button
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || uploading}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {(mut.isPending || uploading) && <Loader2 className="h-3 w-3 animate-spin" />}
+            Paylaş
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LiveTab() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const fn = useServerFn(listLivePosts);
+  const q = useQuery({ queryKey: ["live-posts"], queryFn: () => fn() });
+  const endFn = useServerFn(endLive);
+  const [joined, setJoined] = useState<string | null>(null);
+
+  const endMut = useMutation({
+    mutationFn: (id: string) => endFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Yayın sonlandırıldı.");
+      qc.invalidateQueries({ queryKey: ["live-posts"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-3">
+      <StartLiveDialog />
+      {q.isLoading && <LoadingState />}
+      {q.data && q.data.length === 0 && (
+        <EmptyState
+          title="Şu an canlı yayın yok"
+          description="Bir soru-cevap ya da tanıtım için canlı yayın başlatabilirsin."
+          icon={Radio}
+        />
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {(q.data ?? []).map((post) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const p = post as any;
+          const isOwn = user?.id === p.user_id;
+          const isJoined = joined === p.id;
+          return (
+            <div key={p.id} className="overflow-hidden rounded-xl border border-border bg-card">
+              <div className="relative flex aspect-video items-end bg-gradient-to-br from-red-600 to-slate-900 p-4">
+                <span className="absolute left-3 top-3 flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> CANLI
+                </span>
+                <div>
+                  <p className="text-xs text-white/80">
+                    {p.profile?.display_name ?? "Kullanıcı"}{" "}
+                    {p.profile?.username ? `· @${p.profile.username}` : ""}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white">{p.live_title}</p>
+                </div>
+              </div>
+              <div className="p-3">
+                <p className="mb-2 text-[11px] text-muted-foreground">
+                  Video altyapısı bu ortamda tanımlı değil — canlı sohbet üzerinden takip
+                  edebilirsiniz.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setJoined(isJoined ? null : p.id)}
+                  >
+                    {isJoined ? "Sohbeti kapat" : "Sohbete katıl"}
+                  </Button>
+                  {isOwn && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => endMut.mutate(p.id)}
+                      disabled={endMut.isPending}
+                    >
+                      Yayını bitir
+                    </Button>
+                  )}
+                </div>
+                {isJoined && (
+                  <div className="mt-2 -mx-3 -mb-3">
+                    <CommentsSection targetType="post" targetId={p.id} queryKey={["live-posts"]} />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function StoriesGrid() {
+function StartLiveDialog() {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const qc = useQueryClient();
+  const fn = useServerFn(startLive);
+  const mut = useMutation({
+    mutationFn: () => fn({ data: { title } }),
+    onSuccess: () => {
+      toast.success("Canlı yayın başladı.");
+      setOpen(false);
+      setTitle("");
+      qc.invalidateQueries({ queryKey: ["live-posts"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {STORIES.map((s) => (
-        <div
-          key={s.id}
-          className="relative flex aspect-[9/14] items-end overflow-hidden rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 p-3"
-        >
-          <div className="absolute right-2 top-2 text-4xl">{s.avatar}</div>
-          <div className="relative z-10">
-            <p className="text-sm font-semibold text-white">@{s.user}</p>
-            {s.live ? (
-              <span className="mt-1 inline-block rounded-sm bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                CANLI
-              </span>
-            ) : (
-              <p className="text-[10px] text-white/70">
-                {s.seen ? "Görüldü" : "Yeni hikaye"}
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <Radio className="h-3.5 w-3.5" /> Canlı yayın başlat
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Canlı yayın başlat</DialogTitle>
+        </DialogHeader>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={140}
+          placeholder="Yayın başlığı, örn. Motor sesinden arıza teşhisi"
+          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Not: bu ortamda gerçek video altyapısı (WebRTC/RTMP sağlayıcı) tanımlı değil; yayın
+          oturumu ve canlı sohbet gerçek zamanlıdır, görüntü aktarımı ileride bir sağlayıcı
+          eklenince devreye girecek.
+        </p>
+        <DialogFooter>
+          <button
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || title.trim().length < 2}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {mut.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
+            Başlat
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ProfilesTab() {
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const fn = useServerFn(searchProfiles);
+  const q = useQuery({
+    queryKey: ["search-profiles", search],
+    queryFn: () => fn({ data: { q: search || undefined } }),
+  });
+  const followFn = useServerFn(followUser);
+  const unfollowFn = useServerFn(unfollowUser);
+
+  const followMut = useMutation({
+    mutationFn: (id: string) => followFn({ data: { user_id: id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["search-profiles"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const unfollowMut = useMutation({
+    mutationFn: (id: string) => unfollowFn({ data: { user_id: id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["search-profiles"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-3">
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Kullanıcı ara…"
+        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+      />
+      {q.isLoading && <LoadingState />}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {(q.data ?? []).map((p) => (
+          <div
+            key={p.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+          >
+            <Avatar className="h-14 w-14">
+              <AvatarImage src={p.avatar_url ?? undefined} />
+              <AvatarFallback>
+                <User className="h-6 w-6" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{p.display_name ?? "Kullanıcı"}</p>
+              {p.username && (
+                <p className="truncate text-xs text-muted-foreground">@{p.username}</p>
+              )}
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {p.follower_count} takipçi · {p.post_count} gönderi
               </p>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function LiveGrid() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {LIVE.map((l) => (
-        <div
-          key={l.id}
-          className={`relative aspect-video overflow-hidden rounded-xl bg-gradient-to-br ${l.bg} p-4`}
-        >
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-              CANLI
-            </span>
-            <span className="rounded bg-black/50 px-2 py-0.5 text-[10px] text-white backdrop-blur">
-              👁 {l.viewers.toLocaleString("tr-TR")}
-            </span>
-          </div>
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-            <p className="text-xs text-white/80">@{l.user}</p>
-            <p className="mt-1 text-sm font-semibold text-white">{l.title}</p>
-            <Button size="sm" className="mt-3 h-7 bg-white text-black hover:bg-white/90">
-              Katıl
+            </div>
+            <Button
+              size="sm"
+              variant={p.is_following ? "outline" : "default"}
+              className="h-8"
+              onClick={() => (p.is_following ? unfollowMut.mutate(p.id) : followMut.mutate(p.id))}
+              disabled={followMut.isPending || unfollowMut.isPending}
+            >
+              {p.is_following ? "Takipten çık" : "Takip"}
             </Button>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
-}
-
-function ProfilesGrid() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {PROFILES.map((p) => (
-        <div
-          key={p.id}
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl">
-            {p.avatar}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-semibold">{p.name}</p>
-            <p className="truncate text-xs text-muted-foreground">@{p.user}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {p.followers} takipçi · {p.cars} araç
-            </p>
-          </div>
-          <Button size="sm" variant="outline" className="h-8">
-            Takip
-          </Button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function formatK(n: number) {
-  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
-  return String(n);
 }

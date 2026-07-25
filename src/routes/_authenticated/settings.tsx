@@ -1,9 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { Loader2, LogOut, Monitor, Moon, ShieldAlert, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoadingState } from "@/components/data-state";
 import { supabase } from "@/integrations/supabase/client";
 import { useThemeStore, type Theme } from "@/stores/theme-store";
-import { getMyProfile, updateMyProfile } from "@/lib/garage.functions";
+import { getMyProfile, getMyRoles, updateMyProfile } from "@/lib/garage.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -26,6 +26,8 @@ function SettingsPage() {
   const upFn = useServerFn(updateMyProfile);
 
   const q = useQuery({ queryKey: ["me"], queryFn: () => getFn() });
+  const rolesFn = useServerFn(getMyRoles);
+  const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn() });
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
 
@@ -37,14 +39,12 @@ function SettingsPage() {
   }, [q.data]);
 
   const mut = useMutation({
-    mutationFn: () =>
-      upFn({ data: { display_name: displayName, bio: bio || undefined } }),
+    mutationFn: () => upFn({ data: { display_name: displayName, bio: bio || undefined } }),
     onSuccess: () => {
       toast.success("Profil güncellendi");
       qc.invalidateQueries({ queryKey: ["me"] });
     },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Hata"),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Hata"),
   });
 
   async function signOut() {
@@ -74,11 +74,7 @@ function SettingsPage() {
         <div className="mt-4 space-y-4">
           <div>
             <Label htmlFor="dn">Ad Soyad</Label>
-            <Input
-              id="dn"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
+            <Input id="dn" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="bio">Hakkımda</Label>
@@ -91,9 +87,7 @@ function SettingsPage() {
             />
           </div>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {mut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Kaydet
           </Button>
         </div>
@@ -122,13 +116,20 @@ function SettingsPage() {
         </div>
       </section>
 
+      {rolesQ.data?.includes("admin") && (
+        <section className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="text-base font-semibold">Admin</h2>
+          <Button asChild variant="outline" className="mt-4">
+            <Link to="/admin/reports">
+              <ShieldAlert className="mr-2 h-4 w-4" /> Şikayet Kuyruğu
+            </Link>
+          </Button>
+        </section>
+      )}
+
       <section className="rounded-2xl border border-border bg-card p-6">
         <h2 className="text-base font-semibold">Hesap</h2>
-        <Button
-          variant="destructive"
-          className="mt-4"
-          onClick={signOut}
-        >
+        <Button variant="destructive" className="mt-4" onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" /> Çıkış Yap
         </Button>
       </section>

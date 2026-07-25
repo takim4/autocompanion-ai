@@ -32,14 +32,19 @@ const MechanicProfileInput = z.object({
   brands: z.array(z.string().min(1).max(60)).max(20).optional().default([]),
   bio: z.string().max(1000).optional().nullable(),
   active: z.boolean().optional(),
+  google_rating: z.number().min(0).max(5).optional().nullable(),
+  google_rating_count: z.number().int().min(0).optional().nullable(),
+  google_maps_url: z.string().url().max(500).optional().nullable(),
 });
 
-const ListInput = z.object({
-  city: z.string().max(60).optional().nullable(),
-  specialties: z.array(SpecialtyEnum).max(9).optional(),
-  brand: z.string().max(60).optional().nullable(),
-  limit: z.number().int().min(1).max(50).optional().default(15),
-}).merge(CoordSchema);
+const ListInput = z
+  .object({
+    city: z.string().max(60).optional().nullable(),
+    specialties: z.array(SpecialtyEnum).max(9).optional(),
+    brand: z.string().max(60).optional().nullable(),
+    limit: z.number().int().min(1).max(50).optional().default(15),
+  })
+  .merge(CoordSchema);
 
 export const listNearbyMechanics = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => ListInput.parse(i ?? {}))
@@ -65,7 +70,7 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
     let q = client
       .from("mechanics")
       .select(
-        "id, business_name, phone, whatsapp, address, city, district, lat, lng, specialties, brands, avg_rating, rating_count",
+        "id, business_name, phone, whatsapp, address, city, district, lat, lng, specialties, brands, avg_rating, rating_count, google_rating, google_rating_count, google_maps_url",
       )
       .eq("verified", true)
       .eq("active", true)
@@ -304,6 +309,94 @@ export const updateQuoteStatus = createServerFn({ method: "POST" })
       .from("quote_requests")
       .update({ status: data.status })
       .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// --- USTA YORUM & PUANLARI (app içi puan + Google puanı gösterimi) ---
+
+export const listMechanicReviews = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ mechanic_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("mechanic_reviews")
+      .select("*")
+      .eq("mechanic_id", data.mechanic_id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+
+    const ids = [...new Set((rows ?? []).map((r) => r.user_id))];
+    let profileMap = new Map<
+      string,
+      {
+        id: string;
+        username: string | null;
+        display_name: string | null;
+        avatar_url: string | null;
+      }
+    >();
+    if (ids.length > 0) {
+      const { data: profiles } = await context.supabase
+        .from("profiles")
+        .select("id, username, display_name, avatar_url")
+        .in("id", ids);
+      profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+    }
+    return (rows ?? []).map((r) => ({ ...r, profile: profileMap.get(r.user_id) ?? null }));
+  });
+
+const UpsertReviewInput = z.object({
+  mechanic_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(1000).optional().nullable(),
+});
+
+export const upsertMyMechanicReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => UpsertReviewInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: existing } = await context.supabase
+      .from("mechanic_reviews")
+      .select("id")
+      .eq("mechanic_id", data.mechanic_id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (existing) {
+      const { data: row, error } = await context.supabase
+        .from("mechanic_reviews")
+        .update({ rating: data.rating, comment: data.comment ?? null })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return row;
+    }
+    const { data: row, error } = await context.supabase
+      .from("mechanic_reviews")
+      .insert({
+        mechanic_id: data.mechanic_id,
+        user_id: context.userId,
+        rating: data.rating,
+        comment: data.comment ?? null,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deleteMyMechanicReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ mechanic_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("mechanic_reviews")
+      .delete()
+      .eq("mechanic_id", data.mechanic_id)
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
