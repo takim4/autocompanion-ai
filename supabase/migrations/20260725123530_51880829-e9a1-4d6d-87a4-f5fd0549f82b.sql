@@ -1,0 +1,2 @@
+DELETE FROM public.mechanics a USING public.mechanics b WHERE a.ctid < b.ctid AND a.external_id IS NOT NULL AND a.external_id = b.external_id;
+ALTER TABLE public.mechanics ADD CONSTRAINT mechanics_external_id_key UNIQUE (external_id);
