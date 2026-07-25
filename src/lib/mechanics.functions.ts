@@ -177,17 +177,46 @@ const LiveImportInput = z
   })
   .merge(CoordSchema.required());
 
+const SCRAPE_CACHE_TTL_DAYS = 30;
+// ~0.045° ≈ 5 km. Aynı hücreye tekrar Apify çağrısı yapılmasın.
+const CELL_SIZE_DEG = 0.045;
+
+function cellKey(lat: number, lng: number, specialties: Specialty[]) {
+  const clat = Math.round(lat / CELL_SIZE_DEG) * CELL_SIZE_DEG;
+  const clng = Math.round(lng / CELL_SIZE_DEG) * CELL_SIZE_DEG;
+  const specKey = [...specialties].sort().join(",");
+  return `${clat.toFixed(3)}:${clng.toFixed(3)}:${specKey}`;
+}
+
 export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => LiveImportInput.parse(i))
   .handler(async ({ data }) => {
-    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const selectedSpecialties =
       data.specialties && data.specialties.length > 0
         ? (data.specialties as Specialty[])
         : (["genel bakım"] as Specialty[]);
 
+    const key = cellKey(data.lat, data.lng, selectedSpecialties);
+
+    // 1) Cache kontrolü — bu bölge son 30 gün içinde tarandıysa Apify'ı atla.
+    const cutoff = new Date(Date.now() - SCRAPE_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const { data: cached } = await supabaseAdmin
+      .from("mechanic_scrape_log")
+      .select("id, scraped_at, result_count")
+      .eq("cell_key", key)
+      .gte("scraped_at", cutoff)
+      .order("scraped_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (cached) {
+      return { imported: 0, cached: true, cachedAt: cached.scraped_at };
+    }
+
+    // 2) Cache yok → Apify'dan sadece kullanıcının çevresini (25 km) çek.
+    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
     const places = await scrapeGoogleMapsPlaces({
       queries: buildLiveSearchQueries(selectedSpecialties),
       customGeolocation: {
@@ -197,6 +226,7 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
       },
       maxPlacesPerSearch: Math.max(12, data.limit * 3),
     });
+
     const importedRows = toMechanicRows(places).map((r) => ({
       business_name: r.business_name,
       phone: r.phone,
@@ -215,14 +245,26 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
       source: "google_maps",
     }));
 
-    if (importedRows.length === 0) return { imported: 0 };
+    if (importedRows.length > 0) {
+      const { error } = await supabaseAdmin
+        .from("mechanics")
+        .upsert(importedRows, { onConflict: "external_id" });
+      if (error) throw new Error(error.message);
+    }
 
-    const { error } = await supabaseAdmin
-      .from("mechanics")
-      .upsert(importedRows, { onConflict: "external_id" });
-    if (error) throw new Error(error.message);
-    return { imported: importedRows.length };
+    // 3) Tarama günlüğünü kaydet — sonuç boş olsa bile, tekrar tekrar denenmesin.
+    await supabaseAdmin.from("mechanic_scrape_log").insert({
+      cell_key: key,
+      lat: data.lat,
+      lng: data.lng,
+      radius_km: LIVE_SEARCH_RADIUS_KM,
+      specialties: selectedSpecialties,
+      result_count: importedRows.length,
+    });
+
+    return { imported: importedRows.length, cached: false };
   });
+
 
 export const getMechanic = createServerFn({ method: "GET" })
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
