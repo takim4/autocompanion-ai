@@ -1,8 +1,8 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logoAsset from "@/assets/autosocial-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   component: SplashPage,
@@ -29,19 +29,11 @@ function SplashPage() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="flex flex-col items-center gap-4"
       >
-        <div className="relative">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30">
-            <span className="text-4xl font-black">A</span>
-          </div>
-          <motion.div
-            initial={{ scale: 0, rotate: -30 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.3, type: "spring" }}
-            className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground"
-          >
-            <Sparkles className="h-4 w-4" />
-          </motion.div>
-        </div>
+        <img
+          src={logoAsset.url}
+          alt="AutoSocial"
+          className="h-28 w-28 rounded-3xl shadow-2xl shadow-primary/30"
+        />
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
