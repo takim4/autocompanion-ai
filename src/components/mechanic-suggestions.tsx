@@ -149,21 +149,29 @@ export function MechanicSuggestions({
       </div>
 
       {!coords && !effectiveCity && (
-        <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border bg-card p-3">
-          <button
-            onClick={requestLocation}
-            disabled={askingLocation}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {askingLocation ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <MapPin className="h-3.5 w-3.5" />
-            )}
-            Konumumu kullan
-          </button>
-          <span className="text-[11px] text-muted-foreground">veya şehir seç:</span>
-          <CitySelect value={null} onChange={(v) => setManualCity(v)} />
+        <div className="space-y-2 rounded-md border border-dashed border-border bg-card p-3">
+          {geoError && (
+            <div className="flex items-start gap-1.5 rounded bg-destructive/10 p-2 text-[11px] text-destructive">
+              <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+              <span>{geoError}</span>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => requestLocation(false)}
+              disabled={askingLocation}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {askingLocation ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <MapPin className="h-3.5 w-3.5" />
+              )}
+              {askingLocation ? "Konum alınıyor…" : "Net konumumu kullan"}
+            </button>
+            <span className="text-[11px] text-muted-foreground">veya şehir seç:</span>
+            <CitySelect value={null} onChange={(v) => setManualCity(v)} />
+          </div>
         </div>
       )}
 
