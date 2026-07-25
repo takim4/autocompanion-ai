@@ -124,6 +124,12 @@ function AuthPage() {
           password: values.password,
         });
         if (error) throw error;
+        try {
+          if (remember) window.localStorage.setItem(REMEMBER_KEY, values.email);
+          else window.localStorage.removeItem(REMEMBER_KEY);
+        } catch {
+          /* ignore */
+        }
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) throw new Error("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
         toast.success("Hoş geldin!");
