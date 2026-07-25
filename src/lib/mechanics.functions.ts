@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { SPECIALTIES } from "./mechanic-data";
+import { SPECIALTIES, TR_CITIES } from "./mechanic-data";
 
 const CoordSchema = z
   .object({
@@ -309,14 +309,15 @@ export const getMyRoles = createServerFn({ method: "GET" })
 
 const ImportInput = z.object({
   query: z.string().min(2).max(100),
-  city: z.string().min(2).max(60),
+  cities: z.array(z.string().min(2).max(60)).min(1).max(TR_CITIES.length),
   specialty: SpecialtyEnum.optional().default("genel bakım"),
-  limit: z.number().int().min(1).max(50).optional().default(20),
 });
 
 /**
  * Admin-only: Apify Google Maps Scraper ile gerçek usta/sanayi işletmesi verisi çeker ve
  * `mechanics` tablosuna upsert eder (external_id = Google place_id, çakışmada günceller).
+ * Sonuç sayısına sınır KOYULMAZ; seçilen her şehir için ayrı arama terimi olarak tek Apify
+ * çağrısında taranır ("Tüm Türkiye" seçilirse 81 il tek seferde taranır).
  * Kullanıcı hesabı olmadığından bu satırlar user_id = NULL ile "sahipsiz" (source=google_maps) kaydedilir.
  */
 export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
@@ -336,11 +337,9 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const places = await scrapeGoogleMapsPlaces({
-      query: data.query,
-      city: data.city,
-      limit: data.limit,
+      queries: data.cities.map((city) => `${data.query} ${city}`.trim()),
     });
-    const rows = toMechanicRows(places, data.city);
+    const rows = toMechanicRows(places);
     if (rows.length === 0) return { imported: 0 };
 
     const { error } = await supabaseAdmin.from("mechanics").upsert(
