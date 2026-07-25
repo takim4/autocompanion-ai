@@ -528,34 +528,6 @@ function CitySelect({
   );
 }
 
-const cacheKey = (id: string) => `autosocial:loc:${id}`;
-function readCached(id: string) {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(cacheKey(id));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { lat?: number; lng?: number; ts?: number };
-    if (typeof parsed.lat !== "number" || typeof parsed.lng !== "number" || !parsed.ts) return null;
-    if (Date.now() - parsed.ts > 10 * 60 * 1000) return null;
-    return { lat: parsed.lat, lng: parsed.lng };
-  } catch {
-    return null;
-  }
-}
-function writeCached(id: string, c: { lat: number; lng: number }) {
-  try {
-    sessionStorage.setItem(cacheKey(id), JSON.stringify({ ...c, ts: Date.now() }));
-  } catch {
-    // ignore
-  }
-}
-function clearCached(id: string) {
-  try {
-    sessionStorage.removeItem(cacheKey(id));
-  } catch {
-    // ignore
-  }
-}
-
 // Suppress unused variable
+
 export const _SPECIALTIES = SPECIALTIES;
