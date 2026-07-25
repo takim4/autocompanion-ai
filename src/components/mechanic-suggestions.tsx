@@ -149,7 +149,7 @@ export function MechanicSuggestions({
         const c = { lat: best.lat, lng: best.lng };
         setCoords(c);
         setAccuracy(best.acc);
-        writeCached(conversationId, c);
+
         if (best.acc > 500 && !silent) {
           toast.info(`Konum kabaca alındı (±${Math.round(best.acc)} m). Daha net için 'Değiştir' → tekrar dene.`);
         }
