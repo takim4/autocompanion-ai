@@ -17,6 +17,7 @@ const searchSchema = z.object({
 });
 
 const POST_AUTH_REDIRECT_KEY = "autosocial:post-auth-redirect";
+const REMEMBER_KEY = "autosocial:remember-email";
 
 function safeRedirect(value: string): string {
   if (value && value.startsWith("/") && !value.startsWith("//")) return value;
