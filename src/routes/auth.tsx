@@ -17,6 +17,7 @@ const searchSchema = z.object({
 });
 
 const POST_AUTH_REDIRECT_KEY = "autosocial:post-auth-redirect";
+const REMEMBER_KEY = "autosocial:remember-email";
 
 function safeRedirect(value: string): string {
   if (value && value.startsWith("/") && !value.startsWith("//")) return value;
@@ -52,6 +53,7 @@ type FormValues = z.infer<typeof schema>;
 function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [busy, setBusy] = useState(false);
+  const [remember, setRemember] = useState(true);
   const redirectedRef = useRef(false);
   const router = useRouter();
   const search = Route.useSearch();
@@ -97,6 +99,21 @@ function AuthPage() {
     defaultValues: { email: "", password: "", display_name: "" },
   });
 
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(REMEMBER_KEY);
+      if (saved) {
+        form.setValue("email", saved);
+        setRemember(true);
+      } else {
+        setRemember(false);
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function onSubmit(values: FormValues) {
     setBusy(true);
     try {
@@ -107,6 +124,12 @@ function AuthPage() {
           password: values.password,
         });
         if (error) throw error;
+        try {
+          if (remember) window.localStorage.setItem(REMEMBER_KEY, values.email);
+          else window.localStorage.removeItem(REMEMBER_KEY);
+        } catch {
+          /* ignore */
+        }
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) throw new Error("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
         toast.success("Hoş geldin!");
@@ -219,6 +242,18 @@ function AuthPage() {
                 <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
               )}
             </div>
+
+            {mode === "login" && (
+              <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                Beni hatırla
+              </label>
+            )}
 
             <Button type="submit" className="w-full" size="lg" disabled={busy}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
