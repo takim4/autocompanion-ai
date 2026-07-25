@@ -371,7 +371,12 @@ export const createQuoteRequest = createServerFn({ method: "POST" })
       })
       .select()
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (error.code === "23514" || /son 24 saatte/i.test(error.message)) {
+        throw new Error("Bu ustaya son 24 saatte zaten teklif isteği gönderdin. Cevabını beklerken başka bir ustayı da deneyebilirsin.");
+      }
+      throw new Error(error.message);
+    }
     return row;
   });
 
