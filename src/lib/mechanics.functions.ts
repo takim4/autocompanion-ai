@@ -70,14 +70,19 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
         "id, business_name, phone, whatsapp, address, city, district, lat, lng, specialties, brands, avg_rating, rating_count",
       )
       .eq("verified", true)
-      .eq("active", true)
-      .limit(data.limit);
+      .eq("active", true);
 
     if (data.city) q = q.ilike("city", data.city);
     if (data.specialties && data.specialties.length > 0) {
       q = q.overlaps("specialties", data.specialties);
     }
     if (data.brand) q = q.or(`brands.cs.{${data.brand}},brands.eq.{}`);
+
+    // Konum (lat/lng) ile arandığında mesafeye göre JS tarafında sıralanacağı için,
+    // SQL limiti gösterilecek sayıya değil daha geniş bir aday havuzuna uygulanır —
+    // yoksa DB'nin rastgele döndürdüğü ilk N kayıt gerçek en yakınları eleyebilir.
+    const hasCoords = data.lat != null && data.lng != null;
+    q = q.limit(hasCoords ? Math.max(data.limit * 10, 200) : data.limit);
 
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
@@ -105,7 +110,7 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       return (b.avg_rating ?? 0) - (a.avg_rating ?? 0);
     });
 
-    return withDist;
+    return withDist.slice(0, data.limit);
   });
 
 export const getMechanic = createServerFn({ method: "GET" })
