@@ -65,6 +65,7 @@ type MechanicSearchRow = {
 type MechanicSearchResult = MechanicSearchRow & { distance_km: number | null };
 
 const LIVE_SEARCH_RADIUS_KM = 25;
+const NEARBY_MAX_KM = 60; // Konum varsa: bu mesafeden uzak ustalar listede gösterilmez
 const LIVE_SEARCH_MIN_RESULTS = 3;
 
 const LIVE_SEARCH_TERMS: Record<Specialty, string> = {
@@ -167,7 +168,12 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
 
     const rows = await fetchRows(client);
     const sorted = sortMechanicsByDistance(rows, data);
-    return sorted.slice(0, data.limit);
+    // Konum verildiyse yalnızca gerçekten yakın olanları (≤ NEARBY_MAX_KM) döndür;
+    // aksi halde başka şehirdeki eski scrape sonuçları "en yakın" gibi görünür.
+    const filtered = hasCoords
+      ? sorted.filter((r) => r.distance_km != null && r.distance_km <= NEARBY_MAX_KM)
+      : sorted;
+    return filtered.slice(0, data.limit);
   });
 
 const LiveImportInput = z
