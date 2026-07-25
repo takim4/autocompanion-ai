@@ -65,6 +65,7 @@ type MechanicSearchRow = {
 type MechanicSearchResult = MechanicSearchRow & { distance_km: number | null };
 
 const LIVE_SEARCH_RADIUS_KM = 25;
+const NEARBY_MAX_KM = 60; // Konum varsa: bu mesafeden uzak ustalar listede gösterilmez
 const LIVE_SEARCH_MIN_RESULTS = 3;
 
 const LIVE_SEARCH_TERMS: Record<Specialty, string> = {
