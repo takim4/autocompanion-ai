@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X } from "lucide-react";
+import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
 import { listVehicles } from "@/lib/garage.functions";
@@ -53,6 +53,8 @@ export function MechanicSuggestions({
   );
   const [manualCity, setManualCity] = useState<string | null>(null);
   const [askingLocation, setAskingLocation] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const autoTriedRef = useRef(false);
 
   const effectiveCity = manualCity;
 
@@ -88,12 +90,14 @@ export function MechanicSuggestions({
   });
 
 
-  const requestLocation = () => {
+  const requestLocation = (silent = false) => {
     if (!("geolocation" in navigator)) {
-      toast.error("Tarayıcın konum desteklemiyor, şehir seçebilirsin.");
+      setGeoError("Tarayıcın konum desteklemiyor.");
+      if (!silent) toast.error("Tarayıcın konum desteklemiyor, şehir seçebilirsin.");
       return;
     }
     setAskingLocation(true);
+    setGeoError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -103,12 +107,28 @@ export function MechanicSuggestions({
       },
       (err) => {
         setAskingLocation(false);
-        toast.info("Konum reddedildi, şehir seçerek devam edebilirsin.");
-        console.warn(err);
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "Konum izni reddedildi. Tarayıcı adres çubuğundaki 🔒 simgesinden izin verebilir ya da aşağıdan şehir seçebilirsin."
+            : err.code === err.POSITION_UNAVAILABLE
+              ? "Konum alınamadı (sinyal yok). Şehir seçerek devam edebilirsin."
+              : "Konum zaman aşımına uğradı. Şehir seçerek devam edebilirsin.";
+        setGeoError(msg);
+        if (!silent) toast.info(msg);
+        console.warn("geolocation", err);
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60_000 },
     );
   };
+
+  // Sohbet açıldığında otomatik olarak net konumu iste (kullanıcı butona basmak zorunda kalmasın)
+  useEffect(() => {
+    if (autoTriedRef.current) return;
+    if (coords || effectiveCity) return;
+    autoTriedRef.current = true;
+    requestLocation(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mt-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
@@ -129,21 +149,29 @@ export function MechanicSuggestions({
       </div>
 
       {!coords && !effectiveCity && (
-        <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border bg-card p-3">
-          <button
-            onClick={requestLocation}
-            disabled={askingLocation}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {askingLocation ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <MapPin className="h-3.5 w-3.5" />
-            )}
-            Konumumu kullan
-          </button>
-          <span className="text-[11px] text-muted-foreground">veya şehir seç:</span>
-          <CitySelect value={null} onChange={(v) => setManualCity(v)} />
+        <div className="space-y-2 rounded-md border border-dashed border-border bg-card p-3">
+          {geoError && (
+            <div className="flex items-start gap-1.5 rounded bg-destructive/10 p-2 text-[11px] text-destructive">
+              <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
+              <span>{geoError}</span>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => requestLocation(false)}
+              disabled={askingLocation}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {askingLocation ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <MapPin className="h-3.5 w-3.5" />
+              )}
+              {askingLocation ? "Konum alınıyor…" : "Net konumumu kullan"}
+            </button>
+            <span className="text-[11px] text-muted-foreground">veya şehir seç:</span>
+            <CitySelect value={null} onChange={(v) => setManualCity(v)} />
+          </div>
         </div>
       )}
 
