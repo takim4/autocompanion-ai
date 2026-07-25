@@ -54,9 +54,8 @@ export function MechanicSuggestions({
   const importNearbyFn = useServerFn(importNearbyMechanicsFromGoogleMaps);
   const vehiclesFn = useServerFn(listVehicles);
   const queryClient = useQueryClient();
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
-    () => readCached(conversationId),
-  );
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
   const [manualCity, setManualCity] = useState<string | null>(null);
   const [askingLocation, setAskingLocation] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -150,7 +149,7 @@ export function MechanicSuggestions({
         const c = { lat: best.lat, lng: best.lng };
         setCoords(c);
         setAccuracy(best.acc);
-        writeCached(conversationId, c);
+
         if (best.acc > 500 && !silent) {
           toast.info(`Konum kabaca alındı (±${Math.round(best.acc)} m). Daha net için 'Değiştir' → tekrar dene.`);
         }
@@ -247,8 +246,12 @@ export function MechanicSuggestions({
             onClick={() => {
               setCoords(null);
               setManualCity(null);
-              clearCached(conversationId);
+              setAccuracy(null);
+              autoTriedRef.current = false;
+              importTriedRef.current.clear();
+              requestLocation(false);
             }}
+
             className="hover:text-foreground"
           >
             Değiştir
@@ -525,34 +528,6 @@ function CitySelect({
   );
 }
 
-const cacheKey = (id: string) => `autosocial:loc:${id}`;
-function readCached(id: string) {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(cacheKey(id));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { lat?: number; lng?: number; ts?: number };
-    if (typeof parsed.lat !== "number" || typeof parsed.lng !== "number" || !parsed.ts) return null;
-    if (Date.now() - parsed.ts > 10 * 60 * 1000) return null;
-    return { lat: parsed.lat, lng: parsed.lng };
-  } catch {
-    return null;
-  }
-}
-function writeCached(id: string, c: { lat: number; lng: number }) {
-  try {
-    sessionStorage.setItem(cacheKey(id), JSON.stringify({ ...c, ts: Date.now() }));
-  } catch {
-    // ignore
-  }
-}
-function clearCached(id: string) {
-  try {
-    sessionStorage.removeItem(cacheKey(id));
-  } catch {
-    // ignore
-  }
-}
-
 // Suppress unused variable
+
 export const _SPECIALTIES = SPECIALTIES;
