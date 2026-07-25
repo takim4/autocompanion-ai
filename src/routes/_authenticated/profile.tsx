@@ -87,13 +87,18 @@ function ProfilePage() {
 
 function AdminMechanicsImport() {
   const [query, setQuery] = useState("oto tamirci");
-  const [city, setCity] = useState<string>(TR_CITIES[0]);
+  const [cities, setCities] = useState<string[]>(["İstanbul"]);
   const [specialty, setSpecialty] = useState<Specialty>("genel bakım");
+
+  const toggleCity = (c: string) => {
+    setCities((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
+  };
+  const allSelected = cities.length === TR_CITIES.length;
 
   const fn = useServerFn(importMechanicsFromGoogleMaps);
   const mut = useMutation({
-    mutationFn: () => fn({ data: { query, city, specialty, limit: 20 } }),
-    onSuccess: (r) => toast.success(`${r.imported} usta içe aktarıldı (${city}).`),
+    mutationFn: () => fn({ data: { query, cities, specialty } }),
+    onSuccess: (r) => toast.success(`${r.imported} usta içe aktarıldı (${cities.length} şehir).`),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -103,27 +108,17 @@ function AdminMechanicsImport() {
         <MapPin className="h-4 w-4" /> Admin — Google Maps'ten Usta İçe Aktar
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Apify Google Maps Scraper ile şehir bazında gerçek oto tamircisi verisi çeker ve doğrulanmış
-        (verified) olarak `mechanics` tablosuna ekler.
+        Apify Google Maps Scraper ile seçilen her şehirde bulunan TÜM sonuçları (sınırsız) çeker ve
+        doğrulanmış (verified) olarak `mechanics` tablosuna ekler. Çok şehir seçmek çalışma süresini
+        uzatır.
       </p>
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Arama terimi (örn. oto elektrikçi)"
           className="rounded-md border border-input bg-background px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
         />
-        <select
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          className="rounded-md border border-input bg-background px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
-        >
-          {TR_CITIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
         <select
           value={specialty}
           onChange={(e) => setSpecialty(e.target.value as Specialty)}
@@ -136,9 +131,44 @@ function AdminMechanicsImport() {
           ))}
         </select>
       </div>
+
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-[11px] font-medium text-muted-foreground">
+          Şehirler ({cities.length} seçili)
+        </span>
+        <button
+          type="button"
+          onClick={() => setCities(allSelected ? [] : [...TR_CITIES])}
+          className="text-[11px] font-medium text-primary hover:underline"
+        >
+          {allSelected ? "Tümünü kaldır" : "Tüm Türkiye (81 il)"}
+        </button>
+      </div>
+      <div className="mt-1 max-h-32 overflow-y-auto rounded-md border border-border bg-background p-2">
+        <div className="flex flex-wrap gap-1">
+          {TR_CITIES.map((c) => {
+            const active = cities.includes(c);
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => toggleCity(c)}
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <button
         onClick={() => mut.mutate()}
-        disabled={mut.isPending}
+        disabled={mut.isPending || cities.length === 0}
         className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
       >
         {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

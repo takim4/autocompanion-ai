@@ -2,7 +2,12 @@
  * Apify "Google Maps Scraper" (compass/crawler-google-places) entegrasyonu.
  * `mechanics` tablosunu gerçek oto tamircisi/sanayi verisiyle doldurmak için kullanılır.
  * Server-only — APIFY_API_TOKEN gerektirir.
+ *
+ * Sonuç sayısına yapay bir üst sınır KOYULMAZ — actor'a maxCrawledPlacesPerSearch
+ * gönderilmez, Google Maps o arama için ne kadar sonuç veriyorsa hepsi çekilir.
+ * Aynı çağrıda birden çok şehir/arama terimi taranabilir (searchStringsArray).
  */
+import { TR_CITIES } from "./mechanic-data";
 
 const APIFY_ACTOR = "compass~crawler-google-places";
 
@@ -33,26 +38,22 @@ export type ImportedMechanic = {
   external_id: string;
 };
 
-/** Apify actor'ünü senkron çalıştırır ve dataset satırlarını döner. */
-export async function scrapeGoogleMapsPlaces(opts: {
-  query: string;
-  city: string;
-  limit?: number;
-}): Promise<ApifyPlace[]> {
+/** Apify actor'ünü senkron çalıştırır ve dataset satırlarını döner (sınırsız — tüm sonuçlar). */
+export async function scrapeGoogleMapsPlaces(opts: { queries: string[] }): Promise<ApifyPlace[]> {
   const token = process.env.APIFY_API_TOKEN;
   if (!token) throw new Error("APIFY_API_TOKEN eksik. Ortam değişkenlerine ekleyin.");
+  if (opts.queries.length === 0) return [];
 
-  const searchString = `${opts.query} ${opts.city}`.trim();
   const res = await fetch(
     `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        searchStringsArray: [searchString],
-        maxCrawledPlacesPerSearch: opts.limit ?? 20,
+        searchStringsArray: opts.queries,
         language: "tr",
         countryCode: "tr",
+        // maxCrawledPlacesPerSearch kasıtlı olarak GÖNDERİLMİYOR — sınırsız sonuç.
       }),
     },
   );
@@ -64,8 +65,17 @@ export async function scrapeGoogleMapsPlaces(opts: {
   return Array.isArray(items) ? items : [];
 }
 
+/** Adres metninden bilinen bir TR ili yakalamayı dener (p.city boşsa fallback). */
+function guessCityFromAddress(address: string): string | null {
+  const lower = address.toLocaleLowerCase("tr-TR");
+  for (const city of TR_CITIES) {
+    if (lower.includes(city.toLocaleLowerCase("tr-TR"))) return city;
+  }
+  return null;
+}
+
 /** Ham Apify sonucunu `mechanics` tablosu satırına dönüştürür; telefon/adres eksikse atlar. */
-export function toMechanicRows(places: ApifyPlace[], fallbackCity: string): ImportedMechanic[] {
+export function toMechanicRows(places: ApifyPlace[]): ImportedMechanic[] {
   const rows: ImportedMechanic[] = [];
   for (const p of places) {
     const phone = (p.phone || p.phoneUnformatted || "").trim();
@@ -76,7 +86,7 @@ export function toMechanicRows(places: ApifyPlace[], fallbackCity: string): Impo
       business_name: businessName,
       phone,
       address,
-      city: p.city || fallbackCity,
+      city: p.city || guessCityFromAddress(address) || "Bilinmiyor",
       district: null,
       lat: p.location?.lat ?? null,
       lng: p.location?.lng ?? null,
