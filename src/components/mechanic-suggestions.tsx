@@ -247,7 +247,7 @@ export function MechanicSuggestions({
         </div>
       )}
 
-      {listQ.data && listQ.data.length === 0 && (
+      {listQ.data && listQ.data.length === 0 && !importMut.isPending && (
         <div className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
           Bu bölgede uygun uzmanlıkta doğrulanmış usta bulunamadı. Konumu tekrar almayı veya farklı bir şehir seçmeyi dene.
         </div>
