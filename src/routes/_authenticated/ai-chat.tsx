@@ -228,7 +228,10 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
             {m.role === "assistant" &&
               (() => {
                 const status = parseStatusFromAI(m.content);
-                const specs = parseSpecialtiesFromAI(m.content);
+                const statusNeedsMechanic =
+                  status === "uzman_gerekli" || /\b(usta|servis|uzman|tamirci)\b/i.test(m.content);
+                const parsedSpecs = parseSpecialtiesFromAI(m.content);
+                const specs = parsedSpecs.length > 0 ? parsedSpecs : statusNeedsMechanic ? ["genel bakım"] : [];
                 return (
                   <>
                     {status && (

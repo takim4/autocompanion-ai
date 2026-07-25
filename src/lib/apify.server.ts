@@ -15,6 +15,7 @@ type ApifyPlace = {
   title?: string;
   address?: string;
   city?: string;
+  neighborhood?: string;
   phone?: string;
   phoneUnformatted?: string;
   website?: string;
@@ -38,25 +39,41 @@ export type ImportedMechanic = {
   external_id: string;
 };
 
-/** Apify actor'ünü senkron çalıştırır ve dataset satırlarını döner (sınırsız — tüm sonuçlar). */
-export async function scrapeGoogleMapsPlaces(opts: { queries: string[] }): Promise<ApifyPlace[]> {
+type GeoPoint = {
+  type: "Point";
+  coordinates: [number, number];
+  radiusKm: number;
+};
+
+/** Apify actor'ünü senkron çalıştırır ve dataset satırlarını döner. */
+export async function scrapeGoogleMapsPlaces(opts: {
+  queries: string[];
+  customGeolocation?: GeoPoint;
+  maxPlacesPerSearch?: number;
+}): Promise<ApifyPlace[]> {
   const token = process.env.APIFY_API_TOKEN;
   if (!token) throw new Error("APIFY_API_TOKEN eksik. Ortam değişkenlerine ekleyin.");
   if (opts.queries.length === 0) return [];
 
-  const res = await fetch(
-    `https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        searchStringsArray: opts.queries,
-        language: "tr",
-        countryCode: "tr",
-        // maxCrawledPlacesPerSearch kasıtlı olarak GÖNDERİLMİYOR — sınırsız sonuç.
-      }),
+  const body: Record<string, unknown> = {
+    searchStringsArray: opts.queries,
+    language: "tr",
+    countryCode: "tr",
+    scrapePlaceDetailPage: true,
+    scrapeReviewsPersonalData: false,
+    maxImages: 0,
+  };
+  if (opts.customGeolocation) body.customGeolocation = opts.customGeolocation;
+  if (opts.maxPlacesPerSearch) body.maxCrawledPlacesPerSearch = opts.maxPlacesPerSearch;
+
+  const res = await fetch(`https://api.apify.com/v2/acts/${APIFY_ACTOR}/run-sync-get-dataset-items`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(body),
+  });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`Apify isteği başarısız (${res.status}): ${text.slice(0, 300)}`);
@@ -86,8 +103,8 @@ export function toMechanicRows(places: ApifyPlace[]): ImportedMechanic[] {
       business_name: businessName,
       phone,
       address,
-      city: p.city || guessCityFromAddress(address) || "Bilinmiyor",
-      district: null,
+      city: p.city || guessCityFromAddress(address) || "Konuma yakın",
+      district: p.neighborhood ?? null,
       lat: p.location?.lat ?? null,
       lng: p.location?.lng ?? null,
       avg_rating: p.totalScore ?? 0,

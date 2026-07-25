@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { SPECIALTIES, TR_CITIES } from "./mechanic-data";
+import { SPECIALTIES, TR_CITIES, type Specialty } from "./mechanic-data";
 
 const CoordSchema = z
   .object({
@@ -43,7 +43,71 @@ const ListInput = z
   })
   .merge(CoordSchema);
 
+const MECHANIC_SELECT =
+  "id, business_name, phone, whatsapp, address, city, district, lat, lng, specialties, brands, avg_rating, rating_count";
+
+const LIVE_SEARCH_RADIUS_KM = 25;
+const LIVE_SEARCH_MIN_RESULTS = 3;
+
+const LIVE_SEARCH_TERMS: Record<Specialty, string> = {
+  motor: "oto motor ustası",
+  "elektrik-elektronik": "oto elektrikçi",
+  "kaporta-boya": "oto kaporta boya",
+  şanzıman: "oto şanzıman ustası",
+  "fren-süspansiyon": "oto fren süspansiyon ustası",
+  klima: "oto klima servisi",
+  "lastik-rot-balans": "lastik rot balans",
+  egzoz: "oto egzoz servisi",
+  "genel bakım": "oto tamirci",
+};
+
+function distanceKm(from: { lat: number; lng: number }, to: { lat: number; lng: number }) {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(to.lat - from.lat);
+  const dLng = toRad(to.lng - from.lng);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(from.lat)) * Math.cos(toRad(to.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function sortMechanicsByDistance(rows: Array<Record<string, unknown>>, data: z.infer<typeof ListInput>) {
+  const withDist = rows.map((r) => {
+    let distance_km: number | null = null;
+    if (
+      data.lat != null &&
+      data.lng != null &&
+      typeof r.lat === "number" &&
+      typeof r.lng === "number"
+    ) {
+      distance_km = distanceKm({ lat: data.lat, lng: data.lng }, { lat: r.lat, lng: r.lng });
+    }
+    return { ...r, distance_km };
+  });
+
+  withDist.sort((a, b) => {
+    if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
+    if (a.distance_km != null) return -1;
+    if (b.distance_km != null) return 1;
+    return (Number(b.avg_rating) || 0) - (Number(a.avg_rating) || 0);
+  });
+
+  return withDist;
+}
+
+function hasEnoughLocalMechanics(rows: Array<{ distance_km: number | null }>, limit: number) {
+  const nearby = rows.filter((r) => r.distance_km != null && r.distance_km <= LIVE_SEARCH_RADIUS_KM);
+  return nearby.length >= Math.min(LIVE_SEARCH_MIN_RESULTS, limit);
+}
+
+function buildLiveSearchQueries(specialties?: Specialty[]) {
+  const selected = specialties && specialties.length > 0 ? specialties : (["genel bakım"] as Specialty[]);
+  return Array.from(new Set(selected.slice(0, 2).map((s) => LIVE_SEARCH_TERMS[s] ?? "oto tamirci")));
+}
+
 export const listNearbyMechanics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => ListInput.parse(i ?? {}))
   .handler(async ({ data }) => {
     // Anon-safe okuma; supabase client with publishable key.
@@ -64,53 +128,88 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       },
     });
 
-    let q = client
-      .from("mechanics")
-      .select(
-        "id, business_name, phone, whatsapp, address, city, district, lat, lng, specialties, brands, avg_rating, rating_count",
-      )
-      .eq("verified", true)
-      .eq("active", true);
-
-    if (data.city) q = q.ilike("city", data.city);
-    if (data.specialties && data.specialties.length > 0) {
-      q = q.overlaps("specialties", data.specialties);
-    }
-    if (data.brand) q = q.or(`brands.cs.{${data.brand}},brands.eq.{}`);
-
     // Konum (lat/lng) ile arandığında mesafeye göre JS tarafında sıralanacağı için,
     // SQL limiti gösterilecek sayıya değil daha geniş bir aday havuzuna uygulanır —
     // yoksa DB'nin rastgele döndürdüğü ilk N kayıt gerçek en yakınları eleyebilir.
     const hasCoords = data.lat != null && data.lng != null;
-    q = q.limit(hasCoords ? Math.max(data.limit * 10, 200) : data.limit);
+    const poolLimit = hasCoords ? Math.max(data.limit * 10, 200) : data.limit;
 
-    const { data: rows, error } = await q;
-    if (error) throw new Error(error.message);
+    const fetchRows = async (db: any) => {
+      let q = db
+        .from("mechanics")
+        .select(MECHANIC_SELECT)
+        .eq("verified", true)
+        .eq("active", true);
 
-    // Mesafe hesabı (Haversine, JS tarafında)
-    const withDist = (rows ?? []).map((r) => {
-      let distance_km: number | null = null;
-      if (data.lat != null && data.lng != null && r.lat != null && r.lng != null) {
-        const toRad = (d: number) => (d * Math.PI) / 180;
-        const R = 6371;
-        const dLat = toRad(r.lat - data.lat);
-        const dLng = toRad(r.lng - data.lng);
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(toRad(data.lat)) * Math.cos(toRad(r.lat)) * Math.sin(dLng / 2) ** 2;
-        distance_km = 2 * R * Math.asin(Math.sqrt(a));
+      if (data.city) q = q.ilike("city", data.city);
+      if (data.specialties && data.specialties.length > 0) {
+        q = q.overlaps("specialties", data.specialties);
       }
-      return { ...r, distance_km };
-    });
+      if (data.brand) q = q.or(`brands.cs.{${data.brand}},brands.eq.{}`);
 
-    withDist.sort((a, b) => {
-      if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
-      if (a.distance_km != null) return -1;
-      if (b.distance_km != null) return 1;
-      return (b.avg_rating ?? 0) - (a.avg_rating ?? 0);
-    });
+      const { data: rows, error } = await q.limit(poolLimit);
+      if (error) throw new Error(error.message);
+      return (rows ?? []) as Array<Record<string, unknown>>;
+    };
 
-    return withDist.slice(0, data.limit);
+    let rows = await fetchRows(client);
+    let sorted = sortMechanicsByDistance(rows, data);
+    let liveSearchError: string | null = null;
+
+    if (hasCoords && !hasEnoughLocalMechanics(sorted, data.limit)) {
+      try {
+        const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const selectedSpecialties =
+          data.specialties && data.specialties.length > 0
+            ? (data.specialties as Specialty[])
+            : (["genel bakım"] as Specialty[]);
+
+        const places = await scrapeGoogleMapsPlaces({
+          queries: buildLiveSearchQueries(selectedSpecialties),
+          customGeolocation: {
+            type: "Point",
+            coordinates: [data.lng as number, data.lat as number],
+            radiusKm: LIVE_SEARCH_RADIUS_KM,
+          },
+          maxPlacesPerSearch: Math.max(12, data.limit * 3),
+        });
+        const importedRows = toMechanicRows(places).map((r) => ({
+          business_name: r.business_name,
+          phone: r.phone,
+          address: r.address,
+          city: r.city,
+          district: r.district,
+          lat: r.lat,
+          lng: r.lng,
+          avg_rating: r.avg_rating,
+          rating_count: r.rating_count,
+          external_id: r.external_id,
+          specialties: selectedSpecialties,
+          brands: [],
+          verified: true,
+          active: true,
+          source: "google_maps",
+        }));
+
+        if (importedRows.length > 0) {
+          const { error: upsertErr } = await supabaseAdmin
+            .from("mechanics")
+            .upsert(importedRows, { onConflict: "external_id" });
+          if (upsertErr) throw new Error(upsertErr.message);
+          rows = await fetchRows(supabaseAdmin);
+          sorted = sortMechanicsByDistance(rows, data);
+        }
+      } catch (e) {
+        liveSearchError = e instanceof Error ? e.message : "Yakındaki ustalar canlı araması başarısız oldu.";
+      }
+    }
+
+    if (liveSearchError && !hasEnoughLocalMechanics(sorted, data.limit)) {
+      throw new Error(liveSearchError);
+    }
+
+    return sorted.slice(0, data.limit);
   });
 
 export const getMechanic = createServerFn({ method: "GET" })

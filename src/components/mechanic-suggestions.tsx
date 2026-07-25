@@ -54,6 +54,7 @@ export function MechanicSuggestions({
   const [manualCity, setManualCity] = useState<string | null>(null);
   const [askingLocation, setAskingLocation] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
   const autoTriedRef = useRef(false);
 
   const effectiveCity = manualCity;
@@ -102,6 +103,7 @@ export function MechanicSuggestions({
       (pos) => {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setCoords(c);
+        setAccuracy(pos.coords.accuracy);
         writeCached(conversationId, c);
         setAskingLocation(false);
       },
@@ -117,7 +119,7 @@ export function MechanicSuggestions({
         if (!silent) toast.info(msg);
         console.warn("geolocation", err);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60_000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   };
 
@@ -179,7 +181,7 @@ export function MechanicSuggestions({
         <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>
             {coords
-              ? "📍 Konumuna göre sıralandı"
+              ? `📍 Net konumuna göre sıralandı${accuracy ? ` (±${Math.round(accuracy)} m)` : ""}`
               : `📍 Şehir: ${effectiveCity}`}
           </span>
           <button
@@ -197,13 +199,20 @@ export function MechanicSuggestions({
 
       {listQ.isLoading && (coords || effectiveCity) && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Ustalar aranıyor…
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yakındaki ustalar Google Maps / Apify ile aranıyor…
+        </div>
+      )}
+
+      {listQ.isError && (
+        <div className="flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>{listQ.error instanceof Error ? listQ.error.message : "Yakındaki ustalar getirilemedi."}</span>
         </div>
       )}
 
       {listQ.data && listQ.data.length === 0 && (
         <div className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
-          Bu bölgede uygun uzmanlıkta doğrulanmış usta bulunamadı. Farklı bir şehir seçmeyi dene.
+          Bu bölgede uygun uzmanlıkta doğrulanmış usta bulunamadı. Konumu tekrar almayı veya farklı bir şehir seçmeyi dene.
         </div>
       )}
 
@@ -462,14 +471,18 @@ function readCached(id: string) {
   if (typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(cacheKey(id));
-    return raw ? (JSON.parse(raw) as { lat: number; lng: number }) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { lat?: number; lng?: number; ts?: number };
+    if (typeof parsed.lat !== "number" || typeof parsed.lng !== "number" || !parsed.ts) return null;
+    if (Date.now() - parsed.ts > 10 * 60 * 1000) return null;
+    return { lat: parsed.lat, lng: parsed.lng };
   } catch {
     return null;
   }
 }
 function writeCached(id: string, c: { lat: number; lng: number }) {
   try {
-    sessionStorage.setItem(cacheKey(id), JSON.stringify(c));
+    sessionStorage.setItem(cacheKey(id), JSON.stringify({ ...c, ts: Date.now() }));
   } catch {
     // ignore
   }
