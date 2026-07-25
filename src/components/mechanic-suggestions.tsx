@@ -1,9 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { listNearbyMechanics, createQuoteRequest } from "@/lib/mechanics.functions";
+import {
+  listNearbyMechanics,
+  createQuoteRequest,
+  importNearbyMechanicsFromGoogleMaps,
+} from "@/lib/mechanics.functions";
 import { listVehicles } from "@/lib/garage.functions";
 import { logWhatsappMessage } from "@/lib/whatsapp-history.functions";
 
@@ -47,7 +51,9 @@ export function MechanicSuggestions({
   vehicleId?: string | null;
 }) {
   const listFn = useServerFn(listNearbyMechanics);
+  const importNearbyFn = useServerFn(importNearbyMechanicsFromGoogleMaps);
   const vehiclesFn = useServerFn(listVehicles);
+  const queryClient = useQueryClient();
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     () => readCached(conversationId),
   );
@@ -56,6 +62,7 @@ export function MechanicSuggestions({
   const [geoError, setGeoError] = useState<string | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const autoTriedRef = useRef(false);
+  const importTriedRef = useRef<Set<string>>(new Set());
 
   const effectiveCity = manualCity;
 
@@ -89,6 +96,36 @@ export function MechanicSuggestions({
       }),
     enabled: !!(coords || effectiveCity),
   });
+
+  const importMut = useMutation({
+    mutationFn: (c: { lat: number; lng: number }) =>
+      importNearbyFn({
+        data: {
+          specialties,
+          lat: c.lat,
+          lng: c.lng,
+          limit: 5,
+        },
+      }),
+    onSuccess: (result) => {
+      if (result.imported > 0) {
+        toast.success(`${result.imported} yakın usta Google Maps üzerinden eklendi.`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["nearby-mechanics"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  useEffect(() => {
+    if (!coords || listQ.isLoading || listQ.isFetching || importMut.isPending) return;
+    const results = (listQ.data ?? []) as Mechanic[];
+    const hasEnoughNearby = results.filter((m) => m.distance_km != null && m.distance_km <= 25).length >= 3;
+    if (hasEnoughNearby) return;
+    const key = `${coords.lat.toFixed(3)},${coords.lng.toFixed(3)}:${specialties.join("|")}`;
+    if (importTriedRef.current.has(key)) return;
+    importTriedRef.current.add(key);
+    importMut.mutate(coords);
+  }, [coords, specialties, listQ.data, listQ.isFetching, listQ.isLoading, importMut]);
 
 
   const requestLocation = (silent = false) => {
@@ -197,7 +234,7 @@ export function MechanicSuggestions({
         </div>
       )}
 
-      {listQ.isLoading && (coords || effectiveCity) && (
+      {(listQ.isLoading || importMut.isPending) && (coords || effectiveCity) && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yakındaki ustalar Google Maps / Apify ile aranıyor…
         </div>

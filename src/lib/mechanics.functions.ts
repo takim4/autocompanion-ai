@@ -165,64 +165,63 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       return (rows ?? []) as MechanicSearchRow[];
     };
 
-    let rows = await fetchRows(client);
-    let sorted = sortMechanicsByDistance(rows, data);
-    let liveSearchError: string | null = null;
-
-    if (hasCoords && !hasEnoughLocalMechanics(sorted, data.limit)) {
-      try {
-        const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const selectedSpecialties =
-          data.specialties && data.specialties.length > 0
-            ? (data.specialties as Specialty[])
-            : (["genel bakım"] as Specialty[]);
-
-        const places = await scrapeGoogleMapsPlaces({
-          queries: buildLiveSearchQueries(selectedSpecialties),
-          customGeolocation: {
-            type: "Point",
-            coordinates: [data.lng as number, data.lat as number],
-            radiusKm: LIVE_SEARCH_RADIUS_KM,
-          },
-          maxPlacesPerSearch: Math.max(12, data.limit * 3),
-        });
-        const importedRows = toMechanicRows(places).map((r) => ({
-          business_name: r.business_name,
-          phone: r.phone,
-          address: r.address,
-          city: r.city,
-          district: r.district,
-          lat: r.lat,
-          lng: r.lng,
-          avg_rating: r.avg_rating,
-          rating_count: r.rating_count,
-          external_id: r.external_id,
-          specialties: selectedSpecialties,
-          brands: [],
-          verified: true,
-          active: true,
-          source: "google_maps",
-        }));
-
-        if (importedRows.length > 0) {
-          const { error: upsertErr } = await supabaseAdmin
-            .from("mechanics")
-            .upsert(importedRows, { onConflict: "external_id" });
-          if (upsertErr) throw new Error(upsertErr.message);
-          rows = await fetchRows(supabaseAdmin);
-          sorted = sortMechanicsByDistance(rows, data);
-        }
-      } catch (e) {
-        liveSearchError = e instanceof Error ? e.message : "Yakındaki ustalar canlı araması başarısız oldu.";
-      }
-    }
-
-    if (liveSearchError && !hasEnoughLocalMechanics(sorted, data.limit)) {
-      throw new Error(liveSearchError);
-    }
-
+    const rows = await fetchRows(client);
+    const sorted = sortMechanicsByDistance(rows, data);
     return sorted.slice(0, data.limit);
+  });
+
+const LiveImportInput = z
+  .object({
+    specialties: z.array(SpecialtyEnum).max(9).optional(),
+    limit: z.number().int().min(1).max(50).optional().default(15),
+  })
+  .merge(CoordSchema.required());
+
+export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => LiveImportInput.parse(i))
+  .handler(async ({ data }) => {
+    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const selectedSpecialties =
+      data.specialties && data.specialties.length > 0
+        ? (data.specialties as Specialty[])
+        : (["genel bakım"] as Specialty[]);
+
+    const places = await scrapeGoogleMapsPlaces({
+      queries: buildLiveSearchQueries(selectedSpecialties),
+      customGeolocation: {
+        type: "Point",
+        coordinates: [data.lng, data.lat],
+        radiusKm: LIVE_SEARCH_RADIUS_KM,
+      },
+      maxPlacesPerSearch: Math.max(12, data.limit * 3),
+    });
+    const importedRows = toMechanicRows(places).map((r) => ({
+      business_name: r.business_name,
+      phone: r.phone,
+      address: r.address,
+      city: r.city,
+      district: r.district,
+      lat: r.lat,
+      lng: r.lng,
+      avg_rating: r.avg_rating,
+      rating_count: r.rating_count,
+      external_id: r.external_id,
+      specialties: selectedSpecialties,
+      brands: [],
+      verified: true,
+      active: true,
+      source: "google_maps",
+    }));
+
+    if (importedRows.length === 0) return { imported: 0 };
+
+    const { error } = await supabaseAdmin
+      .from("mechanics")
+      .upsert(importedRows, { onConflict: "external_id" });
+    if (error) throw new Error(error.message);
+    return { imported: importedRows.length };
   });
 
 export const getMechanic = createServerFn({ method: "GET" })
