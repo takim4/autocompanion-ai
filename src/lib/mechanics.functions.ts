@@ -184,7 +184,7 @@ const LiveImportInput = z
   .merge(CoordSchema.required());
 
 const SCRAPE_CACHE_TTL_DAYS = 30;
-// ~0.045° ≈ 5 km. Aynı hücreye tekrar Apify çağrısı yapılmasın.
+// ~0.045° ≈ 5 km. Aynı hücreye tekrar Tavily çağrısı yapılmasın.
 const CELL_SIZE_DEG = 0.045;
 
 function cellKey(lat: number, lng: number, specialties: Specialty[]) {
