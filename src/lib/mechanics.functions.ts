@@ -245,7 +245,7 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
       brands: [],
       verified: true,
       active: true,
-      source: "google_maps",
+      source: "tavily",
     }));
 
     if (importedRows.length > 0) {
@@ -519,7 +519,7 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
         brands: [],
         verified: true,
         active: true,
-        source: "google_maps",
+        source: "tavily",
       })),
       { onConflict: "external_id" },
     );
