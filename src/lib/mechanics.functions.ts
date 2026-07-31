@@ -146,7 +146,22 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
     // SQL limiti gösterilecek sayıya değil daha geniş bir aday havuzuna uygulanır —
     // yoksa DB'nin rastgele döndürdüğü ilk N kayıt gerçek en yakınları eleyebilir.
     const hasCoords = data.lat != null && data.lng != null;
-    const poolLimit = hasCoords ? Math.max(data.limit * 10, 200) : data.limit;
+    const poolLimit = hasCoords ? Math.max(data.limit * 20, 500) : data.limit;
+
+    // Konum varsa DB'den yalnızca kullanıcının çevresindeki coğrafi kutuyu çek.
+    const bbox =
+      hasCoords
+        ? (() => {
+            const latDelta = NEARBY_MAX_KM / 111;
+            const lngDelta = NEARBY_MAX_KM / (111 * Math.max(0.2, Math.cos((data.lat! * Math.PI) / 180)));
+            return {
+              minLat: data.lat! - latDelta,
+              maxLat: data.lat! + latDelta,
+              minLng: data.lng! - lngDelta,
+              maxLng: data.lng! + lngDelta,
+            };
+          })()
+        : null;
 
     const fetchRows = async (db: any) => {
       let q = db
@@ -155,7 +170,15 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
         .eq("verified", true)
         .eq("active", true);
 
-      if (data.city) q = q.ilike("city", data.city);
+      if (bbox) {
+        q = q
+          .gte("lat", bbox.minLat)
+          .lte("lat", bbox.maxLat)
+          .gte("lng", bbox.minLng)
+          .lte("lng", bbox.maxLng);
+      } else if (data.city) {
+        q = q.ilike("city", data.city);
+      }
       if (data.specialties && data.specialties.length > 0) {
         q = q.overlaps("specialties", data.specialties);
       }
@@ -168,13 +191,20 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
 
     const rows = await fetchRows(client);
     const sorted = sortMechanicsByDistance(rows, data);
-    // Konum verildiyse yalnızca gerçekten yakın olanları (≤ NEARBY_MAX_KM) döndür;
-    // aksi halde başka şehirdeki eski scrape sonuçları "en yakın" gibi görünür.
-    const filtered = hasCoords
-      ? sorted.filter((r) => r.distance_km != null && r.distance_km <= NEARBY_MAX_KM)
-      : sorted;
-    return filtered.slice(0, data.limit);
+    if (!hasCoords) return sorted.slice(0, data.limit);
+
+    // Konum varsa: önce en dar halkayı dene, yeterli sonuç yoksa kademeli genişlet.
+    // Böylece 5 km'de usta varken 40 km'dekiler listeye karışmaz.
+    const withDistance = sorted.filter((r) => r.distance_km != null);
+    const tiers = [5, 10, 20, 35, NEARBY_MAX_KM];
+    const minWanted = Math.min(3, data.limit);
+    for (const tier of tiers) {
+      const inTier = withDistance.filter((r) => (r.distance_km as number) <= tier);
+      if (inTier.length >= minWanted) return inTier.slice(0, data.limit);
+    }
+    return withDistance.slice(0, data.limit);
   });
+
 
 const LiveImportInput = z
   .object({
