@@ -221,19 +221,16 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
       return { imported: 0, cached: true, cachedAt: cached.scraped_at };
     }
 
-    // 2) Cache yok → Apify'dan sadece kullanıcının çevresini (25 km) çek.
-    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
-    const places = await scrapeGoogleMapsPlaces({
+    // 2) Cache yok → Tavily ile sadece kullanıcının çevresindeki bölgeyi ara.
+    const { searchMechanicsWithTavily, reverseGeocodeLabel } = await import("./tavily.server");
+    const locationHint = await reverseGeocodeLabel(data.lat, data.lng);
+    const found = await searchMechanicsWithTavily({
       queries: buildLiveSearchQueries(selectedSpecialties),
-      customGeolocation: {
-        type: "Point",
-        coordinates: [data.lng, data.lat],
-        radiusKm: LIVE_SEARCH_RADIUS_KM,
-      },
-      maxPlacesPerSearch: Math.max(12, data.limit * 3),
+      locationHint,
+      maxResultsPerQuery: Math.max(8, Math.min(20, data.limit)),
     });
 
-    const importedRows = toMechanicRows(places).map((r) => ({
+    const importedRows = found.map((r) => ({
       business_name: r.business_name,
       phone: r.phone,
       address: r.address,
