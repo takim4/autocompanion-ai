@@ -494,14 +494,21 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
     if (roleErr) throw new Error(roleErr.message);
     if (!adminRole) throw new Error("Bu işlem için admin yetkisi gerekli");
 
-    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
+    const { searchMechanicsWithTavily } = await import("./tavily.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const places = await scrapeGoogleMapsPlaces({
-      queries: data.cities.map((city) => `${data.query} ${city}`.trim()),
-    });
-    const rows = toMechanicRows(places);
+    const perCity = await Promise.all(
+      data.cities.map((city) =>
+        searchMechanicsWithTavily({
+          queries: [data.query],
+          locationHint: city,
+          maxResultsPerQuery: 10,
+        }).catch(() => []),
+      ),
+    );
+    const rows = perCity.flat();
     if (rows.length === 0) return { imported: 0 };
+
 
     const { error } = await supabaseAdmin.from("mechanics").upsert(
       rows.map((r) => ({
