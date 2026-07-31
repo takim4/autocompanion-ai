@@ -206,7 +206,7 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
 
     const key = cellKey(data.lat, data.lng, selectedSpecialties);
 
-    // 1) Cache kontrolü — bu bölge son 30 gün içinde tarandıysa Apify'ı atla.
+    // 1) Cache kontrolü — bu bölge son 30 gün içinde tarandıysa Tavily'yi atla.
     const cutoff = new Date(Date.now() - SCRAPE_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
     const { data: cached } = await supabaseAdmin
       .from("mechanic_scrape_log")
@@ -475,10 +475,9 @@ const ImportInput = z.object({
 });
 
 /**
- * Admin-only: Apify Google Maps Scraper ile gerçek usta/sanayi işletmesi verisi çeker ve
- * `mechanics` tablosuna upsert eder (external_id = Google place_id, çakışmada günceller).
- * Sonuç sayısına sınır KOYULMAZ; seçilen her şehir için ayrı arama terimi olarak tek Apify
- * çağrısında taranır ("Tüm Türkiye" seçilirse 81 il tek seferde taranır).
+ * Admin-only: Tavily web araması ile gerçek usta/sanayi işletmesi verisi çeker ve
+ * `mechanics` tablosuna upsert eder (external_id = ad+telefon türevi kararlı anahtar).
+ * Seçilen her şehir için ayrı bir arama yapılır ("Tüm Türkiye" seçilirse 81 il taranır).
  * Kullanıcı hesabı olmadığından bu satırlar user_id = NULL ile "sahipsiz" (source=google_maps) kaydedilir.
  */
 export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
