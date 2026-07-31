@@ -506,9 +506,10 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
         }).catch(() => []),
       ),
     );
-    const rows = perCity.flat();
+    const rows = Array.from(
+      new Map(perCity.flat().map((r) => [r.external_id, r])).values(),
+    );
     if (rows.length === 0) return { imported: 0 };
-
 
     const { error } = await supabaseAdmin.from("mechanics").upsert(
       rows.map((r) => ({
