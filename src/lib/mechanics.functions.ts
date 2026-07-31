@@ -184,7 +184,7 @@ const LiveImportInput = z
   .merge(CoordSchema.required());
 
 const SCRAPE_CACHE_TTL_DAYS = 30;
-// ~0.045° ≈ 5 km. Aynı hücreye tekrar Apify çağrısı yapılmasın.
+// ~0.045° ≈ 5 km. Aynı hücreye tekrar Tavily çağrısı yapılmasın.
 const CELL_SIZE_DEG = 0.045;
 
 function cellKey(lat: number, lng: number, specialties: Specialty[]) {
@@ -206,7 +206,7 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
 
     const key = cellKey(data.lat, data.lng, selectedSpecialties);
 
-    // 1) Cache kontrolü — bu bölge son 30 gün içinde tarandıysa Apify'ı atla.
+    // 1) Cache kontrolü — bu bölge son 30 gün içinde tarandıysa Tavily'yi atla.
     const cutoff = new Date(Date.now() - SCRAPE_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
     const { data: cached } = await supabaseAdmin
       .from("mechanic_scrape_log")
@@ -221,19 +221,16 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
       return { imported: 0, cached: true, cachedAt: cached.scraped_at };
     }
 
-    // 2) Cache yok → Apify'dan sadece kullanıcının çevresini (25 km) çek.
-    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
-    const places = await scrapeGoogleMapsPlaces({
+    // 2) Cache yok → Tavily ile sadece kullanıcının çevresindeki bölgeyi ara.
+    const { searchMechanicsWithTavily, reverseGeocodeLabel } = await import("./tavily.server");
+    const locationHint = await reverseGeocodeLabel(data.lat, data.lng);
+    const found = await searchMechanicsWithTavily({
       queries: buildLiveSearchQueries(selectedSpecialties),
-      customGeolocation: {
-        type: "Point",
-        coordinates: [data.lng, data.lat],
-        radiusKm: LIVE_SEARCH_RADIUS_KM,
-      },
-      maxPlacesPerSearch: Math.max(12, data.limit * 3),
+      locationHint,
+      maxResultsPerQuery: Math.max(8, Math.min(20, data.limit)),
     });
 
-    const importedRows = toMechanicRows(places).map((r) => ({
+    const importedRows = found.map((r) => ({
       business_name: r.business_name,
       phone: r.phone,
       address: r.address,
@@ -248,7 +245,7 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
       brands: [],
       verified: true,
       active: true,
-      source: "google_maps",
+      source: "tavily",
     }));
 
     if (importedRows.length > 0) {
@@ -478,10 +475,9 @@ const ImportInput = z.object({
 });
 
 /**
- * Admin-only: Apify Google Maps Scraper ile gerçek usta/sanayi işletmesi verisi çeker ve
- * `mechanics` tablosuna upsert eder (external_id = Google place_id, çakışmada günceller).
- * Sonuç sayısına sınır KOYULMAZ; seçilen her şehir için ayrı arama terimi olarak tek Apify
- * çağrısında taranır ("Tüm Türkiye" seçilirse 81 il tek seferde taranır).
+ * Admin-only: Tavily web araması ile gerçek usta/sanayi işletmesi verisi çeker ve
+ * `mechanics` tablosuna upsert eder (external_id = ad+telefon türevi kararlı anahtar).
+ * Seçilen her şehir için ayrı bir arama yapılır ("Tüm Türkiye" seçilirse 81 il taranır).
  * Kullanıcı hesabı olmadığından bu satırlar user_id = NULL ile "sahipsiz" (source=google_maps) kaydedilir.
  */
 export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
@@ -497,13 +493,21 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
     if (roleErr) throw new Error(roleErr.message);
     if (!adminRole) throw new Error("Bu işlem için admin yetkisi gerekli");
 
-    const { scrapeGoogleMapsPlaces, toMechanicRows } = await import("./apify.server");
+    const { searchMechanicsWithTavily } = await import("./tavily.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const places = await scrapeGoogleMapsPlaces({
-      queries: data.cities.map((city) => `${data.query} ${city}`.trim()),
-    });
-    const rows = toMechanicRows(places);
+    const perCity = await Promise.all(
+      data.cities.map((city) =>
+        searchMechanicsWithTavily({
+          queries: [data.query],
+          locationHint: city,
+          maxResultsPerQuery: 10,
+        }).catch(() => []),
+      ),
+    );
+    const rows = Array.from(
+      new Map(perCity.flat().map((r) => [r.external_id, r])).values(),
+    );
     if (rows.length === 0) return { imported: 0 };
 
     const { error } = await supabaseAdmin.from("mechanics").upsert(
@@ -522,7 +526,7 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
         brands: [],
         verified: true,
         active: true,
-        source: "google_maps",
+        source: "tavily",
       })),
       { onConflict: "external_id" },
     );

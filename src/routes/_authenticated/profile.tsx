@@ -105,10 +105,10 @@ function AdminMechanicsImport() {
   return (
     <div className="rounded-2xl border border-dashed border-border bg-card p-4">
       <h2 className="flex items-center gap-1.5 text-sm font-semibold">
-        <MapPin className="h-4 w-4" /> Admin — Google Maps'ten Usta İçe Aktar
+        <MapPin className="h-4 w-4" /> Admin — Tavily ile Usta İçe Aktar
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Apify Google Maps Scraper ile seçilen her şehirde bulunan TÜM sonuçları (sınırsız) çeker ve
+        Tavily web araması ile seçilen her şehirdeki oto sanayi/usta kayıtlarını bulur ve
         doğrulanmış (verified) olarak `mechanics` tablosuna ekler. Çok şehir seçmek çalışma süresini
         uzatır.
       </p>
