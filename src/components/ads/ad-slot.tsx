@@ -1,13 +1,21 @@
 import { Megaphone } from "lucide-react";
+import { toast } from "sonner";
 
 /**
  * Placeholder ad units. Sizes/positions follow the wireframes; wire these up
  * to a real ad network later — the "Reklam"/"Sponsorlu" disclosure label
- * must stay visible on whatever replaces the placeholder content.
+ * must stay visible on whatever replaces the placeholder content. CTAs are
+ * honest about the current state rather than dead/no-op elements.
  */
 
 const AD_LABEL_CLASS =
   "rounded-full bg-muted px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground";
+
+const ADVERTISE_EMAIL = "reklam@autosocial.app";
+
+function notifyPlaceholder(title: string) {
+  toast.info(`"${title}" bir örnek reklam alanıdır — gerçek reklam sistemi entegre edildiğinde tıklanabilir olacak.`);
+}
 
 export function AdBanner({
   className = "",
@@ -33,9 +41,12 @@ export function AdBanner({
           <p className="truncate text-sm font-semibold">{title}</p>
           <p className="truncate text-xs text-muted-foreground">{description}</p>
         </div>
-        <button className="hidden shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent/20 sm:block">
+        <a
+          href={`mailto:${ADVERTISE_EMAIL}?subject=${encodeURIComponent("AutoSocial'da reklam vermek istiyorum")}`}
+          className="hidden shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent/20 sm:block"
+        >
           {cta}
-        </button>
+        </a>
       </div>
     </div>
   );
@@ -51,6 +62,12 @@ export function AdSquare({ className = "" }: { className?: string }) {
       <p className="text-[11px] leading-tight text-muted-foreground">
         Reklam alanı — 300×250
       </p>
+      <a
+        href={`mailto:${ADVERTISE_EMAIL}`}
+        className="text-[11px] font-medium text-primary hover:underline"
+      >
+        Reklam Ver
+      </a>
     </div>
   );
 }
@@ -83,7 +100,10 @@ export function NativeAdCard({
       </div>
       <p className="text-sm font-medium">{title}</p>
       <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-      <button className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">
+      <button
+        onClick={() => notifyPlaceholder(title)}
+        className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+      >
         {cta}
       </button>
     </article>
@@ -98,7 +118,10 @@ export function AdVideoTile({ className = "" }: { className?: string }) {
       <span className={`absolute left-2 top-2 ${AD_LABEL_CLASS}`}>Sponsorlu</span>
       <Megaphone className="h-8 w-8 text-muted-foreground" />
       <p className="text-xs font-medium">Reklamınız burada görünebilir</p>
-      <button className="mt-1 rounded-md bg-primary px-3 py-1 text-[11px] font-medium text-primary-foreground">
+      <button
+        onClick={() => notifyPlaceholder("Reklamınız burada görünebilir")}
+        className="mt-1 rounded-md bg-primary px-3 py-1 text-[11px] font-medium text-primary-foreground"
+      >
         İncele
       </button>
     </div>

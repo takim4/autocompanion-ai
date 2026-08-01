@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   Heart,
   MessageCircle,
@@ -12,10 +13,12 @@ import {
   Video,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdSquare, AdVideoTile } from "@/components/ads/ad-slot";
 import { FOLLOWED_USERS } from "@/lib/forum-data";
+import { useForumStore } from "@/stores/forum-store";
 
 export const Route = createFileRoute("/_authenticated/feed")({
   component: FeedPage,
@@ -123,49 +126,95 @@ const PROFILES = [
 
 function FeedPage() {
   const [tab, setTab] = useState<Tab>("reels");
+  const [query, setQuery] = useState("");
+  const [activeStory, setActiveStory] = useState<(typeof STORIES)[number] | null>(null);
+  const [seenStories, setSeenStories] = useState<Set<string>>(
+    () => new Set(STORIES.filter((s) => s.seen).map((s) => s.id)),
+  );
+  const followedUserIds = useForumStore((s) => s.followedUserIds);
+  const toggleFollow = useForumStore((s) => s.toggleFollow);
+
+  const q = query.trim().toLowerCase();
+  const reels = useMemo(
+    () =>
+      !q
+        ? REELS
+        : REELS.filter(
+            (r) => r.user.toLowerCase().includes(q) || r.caption.toLowerCase().includes(q) || r.tag.toLowerCase().includes(q),
+          ),
+    [q],
+  );
+  const profiles = useMemo(
+    () =>
+      !q
+        ? PROFILES
+        : PROFILES.filter((p) => p.user.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)),
+    [q],
+  );
+
+  const openStory = (s: (typeof STORIES)[number]) => {
+    setActiveStory(s);
+    setSeenStories((prev) => new Set(prev).add(s.id));
+  };
 
   return (
     <div className="-mx-4 -my-6">
       {/* Stories bar */}
       <div className="border-b border-border bg-card/50 px-4 py-3">
         <div className="flex gap-3 overflow-x-auto pb-1">
-          <button className="flex shrink-0 flex-col items-center gap-1.5">
+          <button
+            onClick={() => toast.info("Hikaye eklemek için fotoğraf/video seçme özelliği yakında.")}
+            className="flex shrink-0 flex-col items-center gap-1.5"
+          >
             <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-border bg-card">
               <Plus className="h-5 w-5 text-muted-foreground" />
             </div>
             <span className="text-[10px] text-muted-foreground">Senin hikayen</span>
           </button>
-          {STORIES.map((s) => (
-            <button key={s.id} className="flex shrink-0 flex-col items-center gap-1.5">
-              <div
-                className={`rounded-full p-[2px] ${
-                  s.live
-                    ? "bg-gradient-to-tr from-red-500 to-orange-500"
-                    : s.seen
-                    ? "bg-muted"
-                    : "bg-gradient-to-tr from-primary via-accent to-primary"
-                }`}
+          {STORIES.map((s) => {
+            const seen = seenStories.has(s.id);
+            return (
+              <button
+                key={s.id}
+                onClick={() => openStory(s)}
+                className="flex shrink-0 flex-col items-center gap-1.5"
               >
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-background bg-card text-2xl">
-                  {s.avatar}
-                  {s.live && (
-                    <span className="absolute -bottom-1 rounded-sm bg-red-600 px-1.5 text-[9px] font-bold text-white">
-                      CANLI
-                    </span>
-                  )}
+                <div
+                  className={`rounded-full p-[2px] ${
+                    s.live
+                      ? "bg-gradient-to-tr from-red-500 to-orange-500"
+                      : seen
+                      ? "bg-muted"
+                      : "bg-gradient-to-tr from-primary via-accent to-primary"
+                  }`}
+                >
+                  <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-background bg-card text-2xl">
+                    {s.avatar}
+                    {s.live && (
+                      <span className="absolute -bottom-1 rounded-sm bg-red-600 px-1.5 text-[9px] font-bold text-white">
+                        CANLI
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <span className="max-w-[64px] truncate text-[10px]">{s.user}</span>
-            </button>
-          ))}
+                <span className="max-w-[64px] truncate text-[10px]">{s.user}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {activeStory && (
+        <StoryViewer story={activeStory} onClose={() => setActiveStory(null)} />
+      )}
 
       {/* Arama (Search) */}
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Video, kullanıcı veya etiket ara…"
             className="w-full rounded-xl border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
@@ -180,8 +229,16 @@ function FeedPage() {
       {/* Takip Edilenler — mobilde yatay şerit, md+ ekranda sağ panelde */}
       <div className="flex gap-3 overflow-x-auto border-b border-border px-4 py-3 md:hidden">
         {FOLLOWED_USERS.map((u) => (
-          <button key={u.id} className="flex shrink-0 flex-col items-center gap-1">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-lg">
+          <button
+            key={u.id}
+            onClick={() => toggleFollow(u.id)}
+            className="flex shrink-0 flex-col items-center gap-1"
+          >
+            <span
+              className={`flex h-11 w-11 items-center justify-center rounded-full text-lg ring-2 ${
+                followedUserIds.includes(u.id) ? "bg-primary/15 ring-primary" : "bg-muted ring-transparent"
+              }`}
+            >
               {u.avatar}
             </span>
             <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
@@ -222,10 +279,20 @@ function FeedPage() {
 
       <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
         <div className="min-w-0">
-          {tab === "reels" && <ReelsGrid />}
-          {tab === "stories" && <StoriesGrid />}
+          {tab === "reels" && <ReelsGrid reels={reels} />}
+          {tab === "stories" && <StoriesGrid onOpen={openStory} seenStories={seenStories} />}
           {tab === "live" && <LiveGrid />}
-          {tab === "profiles" && <ProfilesGrid />}
+          {tab === "profiles" && <ProfilesGrid profiles={profiles} />}
+          {query.trim() && tab === "reels" && reels.length === 0 && (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              "{query}" için sonuç bulunamadı.
+            </p>
+          )}
+          {query.trim() && tab === "profiles" && profiles.length === 0 && (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              "{query}" için sonuç bulunamadı.
+            </p>
+          )}
         </div>
 
         {/* Takip Edilenler */}
@@ -235,16 +302,33 @@ function FeedPage() {
               Takip Edilenler
             </h3>
             <ul className="space-y-1">
-              {FOLLOWED_USERS.map((u) => (
-                <li key={u.id}>
-                  <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent/30">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-base">
-                      {u.avatar}
-                    </span>
-                    <span className="truncate">{u.user}</span>
-                  </button>
-                </li>
-              ))}
+              {FOLLOWED_USERS.map((u) => {
+                const following = followedUserIds.includes(u.id);
+                return (
+                  <li key={u.id}>
+                    <button
+                      onClick={() => toggleFollow(u.id)}
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent/30"
+                    >
+                      <span
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-base ${
+                          following ? "bg-primary/15" : "bg-muted"
+                        }`}
+                      >
+                        {u.avatar}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{u.user}</span>
+                      <span
+                        className={`shrink-0 text-[11px] font-medium ${
+                          following ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {following ? "Takipte" : "Takip Et"}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
           <AdSquare />
@@ -254,11 +338,66 @@ function FeedPage() {
   );
 }
 
-function ReelsGrid() {
+function StoryViewer({
+  story,
+  onClose,
+}: {
+  story: { id: string; user: string; avatar: string; live: boolean };
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+        aria-label="Kapat"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <div
+        className="flex aspect-[9/16] w-full max-w-xs flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="text-6xl">{story.avatar}</span>
+        <p className="mt-4 text-lg font-semibold text-white">@{story.user}</p>
+        {story.live && (
+          <span className="mt-2 rounded-sm bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+            CANLI
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+async function shareReel(r: { user: string; caption: string }) {
+  const shareData = {
+    title: `AutoSocial — ${r.user}`,
+    text: r.caption,
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+  };
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch {
+      // kullanıcı paylaşımı iptal etti
+    }
+    return;
+  }
+  if (typeof navigator !== "undefined" && navigator.clipboard && shareData.url) {
+    await navigator.clipboard.writeText(shareData.url);
+    toast.success("Bağlantı panoya kopyalandı.");
+  }
+}
+
+function ReelsGrid({ reels }: { reels: typeof REELS }) {
   const [muted, setMuted] = useState(true);
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {REELS.map((r) => (
+      {reels.map((r) => (
         <div
           key={r.id}
           className={`group relative aspect-[9/16] overflow-hidden rounded-xl bg-gradient-to-br ${r.bg}`}
@@ -285,9 +424,9 @@ function ReelsGrid() {
               <span className="flex items-center gap-1">
                 <MessageCircle className="h-3 w-3" /> {r.comments}
               </span>
-              <span className="ml-auto flex items-center gap-1">
+              <button onClick={() => shareReel(r)} className="ml-auto flex items-center gap-1">
                 <Send className="h-3 w-3" />
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -297,29 +436,37 @@ function ReelsGrid() {
   );
 }
 
-function StoriesGrid() {
+function StoriesGrid({
+  onOpen,
+  seenStories,
+}: {
+  onOpen: (s: (typeof STORIES)[number]) => void;
+  seenStories: Set<string>;
+}) {
   return (
     <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {STORIES.map((s) => (
-        <div
-          key={s.id}
-          className="relative flex aspect-[9/14] items-end overflow-hidden rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 p-3"
-        >
-          <div className="absolute right-2 top-2 text-4xl">{s.avatar}</div>
-          <div className="relative z-10">
-            <p className="text-sm font-semibold text-white">@{s.user}</p>
-            {s.live ? (
-              <span className="mt-1 inline-block rounded-sm bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                CANLI
-              </span>
-            ) : (
-              <p className="text-[10px] text-white/70">
-                {s.seen ? "Görüldü" : "Yeni hikaye"}
-              </p>
-            )}
-          </div>
-        </div>
-      ))}
+      {STORIES.map((s) => {
+        const seen = seenStories.has(s.id);
+        return (
+          <button
+            key={s.id}
+            onClick={() => onOpen(s)}
+            className="relative flex aspect-[9/14] items-end overflow-hidden rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 p-3 text-left"
+          >
+            <div className="absolute right-2 top-2 text-4xl">{s.avatar}</div>
+            <div className="relative z-10">
+              <p className="text-sm font-semibold text-white">@{s.user}</p>
+              {s.live ? (
+                <span className="mt-1 inline-block rounded-sm bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  CANLI
+                </span>
+              ) : (
+                <p className="text-[10px] text-white/70">{seen ? "Görüldü" : "Yeni hikaye"}</p>
+              )}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -344,7 +491,11 @@ function LiveGrid() {
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
             <p className="text-xs text-white/80">@{l.user}</p>
             <p className="mt-1 text-sm font-semibold text-white">{l.title}</p>
-            <Button size="sm" className="mt-3 h-7 bg-white text-black hover:bg-white/90">
+            <Button
+              size="sm"
+              onClick={() => toast.info("Canlı yayın altyapısı henüz aktif değil — yakında!")}
+              className="mt-3 h-7 bg-white text-black hover:bg-white/90"
+            >
               Katıl
             </Button>
           </div>
@@ -354,29 +505,39 @@ function LiveGrid() {
   );
 }
 
-function ProfilesGrid() {
+function ProfilesGrid({ profiles }: { profiles: typeof PROFILES }) {
+  const followedUserIds = useForumStore((s) => s.followedUserIds);
+  const toggleFollow = useForumStore((s) => s.toggleFollow);
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {PROFILES.map((p) => (
-        <div
-          key={p.id}
-          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl">
-            {p.avatar}
+      {profiles.map((p) => {
+        const following = followedUserIds.includes(p.id);
+        return (
+          <div
+            key={p.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-2xl">
+              {p.avatar}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{p.name}</p>
+              <p className="truncate text-xs text-muted-foreground">@{p.user}</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {p.followers} takipçi · {p.cars} araç
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant={following ? "secondary" : "outline"}
+              onClick={() => toggleFollow(p.id)}
+              className="h-8 shrink-0"
+            >
+              {following ? "Takipte" : "Takip"}
+            </Button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-semibold">{p.name}</p>
-            <p className="truncate text-xs text-muted-foreground">@{p.user}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {p.followers} takipçi · {p.cars} araç
-            </p>
-          </div>
-          <Button size="sm" variant="outline" className="h-8">
-            Takip
-          </Button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -202,7 +202,13 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       const inTier = withDistance.filter((r) => (r.distance_km as number) <= tier);
       if (inTier.length >= minWanted) return inTier.slice(0, data.limit);
     }
-    return withDistance.slice(0, data.limit);
+    // Hiçbir halkada yeterli sayı bulunamadıysa bile NEARBY_MAX_KM sınırını aşma —
+    // dikdörtgen bbox'ın köşeleri gerçek çemberden daha geniş olabildiği için
+    // (önceki sürümde burada filtre uygulanmıyordu ve 60 km'den uzak ustalar
+    // "yakındaki ustalar" olarak dönebiliyordu).
+    return withDistance
+      .filter((r) => (r.distance_km as number) <= NEARBY_MAX_KM)
+      .slice(0, data.limit);
   });
 
 
