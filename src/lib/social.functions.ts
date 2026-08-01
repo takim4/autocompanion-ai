@@ -21,7 +21,11 @@ async function authorSnapshot(client: SupabaseClient, userId: string) {
   };
 }
 
-async function withLikedByMe(client: SupabaseClient, userId: string, rows: Array<Record<string, unknown>>) {
+async function withLikedByMe(
+  client: SupabaseClient,
+  userId: string,
+  rows: Array<Record<string, any>>,
+): Promise<Array<Record<string, any>>> {
   if (rows.length === 0) return rows;
   const ids = rows.map((r) => r.id as string);
   const { data: liked } = await db(client)
