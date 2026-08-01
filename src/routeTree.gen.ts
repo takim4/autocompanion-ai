@@ -27,6 +27,8 @@ import { Route as AuthenticatedFactCheckRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAiChatRouteImport } from './routes/_authenticated/ai-chat'
 import { Route as AuthenticatedGarageIndexRouteImport } from './routes/_authenticated/garage.index'
 import { Route as AuthenticatedGarageNewRouteImport } from './routes/_authenticated/garage.new'
+import { Route as AuthenticatedForumPostIdRouteImport } from './routes/_authenticated/forum.$postId'
+import { Route as AuthenticatedFeedCreateRouteImport } from './routes/_authenticated/feed.create'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -120,6 +122,17 @@ const AuthenticatedGarageNewRoute = AuthenticatedGarageNewRouteImport.update({
   path: '/garage/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedForumPostIdRoute =
+  AuthenticatedForumPostIdRouteImport.update({
+    id: '/$postId',
+    path: '/$postId',
+    getParentRoute: () => AuthenticatedForumRoute,
+  } as any)
+const AuthenticatedFeedCreateRoute = AuthenticatedFeedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AuthenticatedFeedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -129,14 +142,16 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/fact-check': typeof AuthenticatedFactCheckRoute
-  '/feed': typeof AuthenticatedFeedRoute
-  '/forum': typeof AuthenticatedForumRoute
+  '/feed': typeof AuthenticatedFeedRouteWithChildren
+  '/forum': typeof AuthenticatedForumRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/feed/create': typeof AuthenticatedFeedCreateRoute
+  '/forum/$postId': typeof AuthenticatedForumPostIdRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
   '/garage/': typeof AuthenticatedGarageIndexRoute
 }
@@ -148,14 +163,16 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/fact-check': typeof AuthenticatedFactCheckRoute
-  '/feed': typeof AuthenticatedFeedRoute
-  '/forum': typeof AuthenticatedForumRoute
+  '/feed': typeof AuthenticatedFeedRouteWithChildren
+  '/forum': typeof AuthenticatedForumRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/feed/create': typeof AuthenticatedFeedCreateRoute
+  '/forum/$postId': typeof AuthenticatedForumPostIdRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
   '/garage': typeof AuthenticatedGarageIndexRoute
 }
@@ -169,14 +186,16 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ai-chat': typeof AuthenticatedAiChatRoute
   '/_authenticated/fact-check': typeof AuthenticatedFactCheckRoute
-  '/_authenticated/feed': typeof AuthenticatedFeedRoute
-  '/_authenticated/forum': typeof AuthenticatedForumRoute
+  '/_authenticated/feed': typeof AuthenticatedFeedRouteWithChildren
+  '/_authenticated/forum': typeof AuthenticatedForumRouteWithChildren
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quotes': typeof AuthenticatedQuotesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/_authenticated/feed/create': typeof AuthenticatedFeedCreateRoute
+  '/_authenticated/forum/$postId': typeof AuthenticatedForumPostIdRoute
   '/_authenticated/garage/new': typeof AuthenticatedGarageNewRoute
   '/_authenticated/garage/': typeof AuthenticatedGarageIndexRoute
 }
@@ -198,6 +217,8 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/settings'
     | '/whatsapp-history'
+    | '/feed/create'
+    | '/forum/$postId'
     | '/garage/new'
     | '/garage/'
   fileRoutesByTo: FileRoutesByTo
@@ -217,6 +238,8 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/settings'
     | '/whatsapp-history'
+    | '/feed/create'
+    | '/forum/$postId'
     | '/garage/new'
     | '/garage'
   id:
@@ -237,6 +260,8 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes'
     | '/_authenticated/settings'
     | '/_authenticated/whatsapp-history'
+    | '/_authenticated/feed/create'
+    | '/_authenticated/forum/$postId'
     | '/_authenticated/garage/new'
     | '/_authenticated/garage/'
   fileRoutesById: FileRoutesById
@@ -378,14 +403,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGarageNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/forum/$postId': {
+      id: '/_authenticated/forum/$postId'
+      path: '/$postId'
+      fullPath: '/forum/$postId'
+      preLoaderRoute: typeof AuthenticatedForumPostIdRouteImport
+      parentRoute: typeof AuthenticatedForumRoute
+    }
+    '/_authenticated/feed/create': {
+      id: '/_authenticated/feed/create'
+      path: '/create'
+      fullPath: '/feed/create'
+      preLoaderRoute: typeof AuthenticatedFeedCreateRouteImport
+      parentRoute: typeof AuthenticatedFeedRoute
+    }
   }
 }
+
+interface AuthenticatedFeedRouteChildren {
+  AuthenticatedFeedCreateRoute: typeof AuthenticatedFeedCreateRoute
+}
+
+const AuthenticatedFeedRouteChildren: AuthenticatedFeedRouteChildren = {
+  AuthenticatedFeedCreateRoute: AuthenticatedFeedCreateRoute,
+}
+
+const AuthenticatedFeedRouteWithChildren =
+  AuthenticatedFeedRoute._addFileChildren(AuthenticatedFeedRouteChildren)
+
+interface AuthenticatedForumRouteChildren {
+  AuthenticatedForumPostIdRoute: typeof AuthenticatedForumPostIdRoute
+}
+
+const AuthenticatedForumRouteChildren: AuthenticatedForumRouteChildren = {
+  AuthenticatedForumPostIdRoute: AuthenticatedForumPostIdRoute,
+}
+
+const AuthenticatedForumRouteWithChildren =
+  AuthenticatedForumRoute._addFileChildren(AuthenticatedForumRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiChatRoute: typeof AuthenticatedAiChatRoute
   AuthenticatedFactCheckRoute: typeof AuthenticatedFactCheckRoute
-  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
-  AuthenticatedForumRoute: typeof AuthenticatedForumRoute
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRouteWithChildren
+  AuthenticatedForumRoute: typeof AuthenticatedForumRouteWithChildren
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMechanicPanelRoute: typeof AuthenticatedMechanicPanelRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -399,8 +460,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiChatRoute: AuthenticatedAiChatRoute,
   AuthenticatedFactCheckRoute: AuthenticatedFactCheckRoute,
-  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
-  AuthenticatedForumRoute: AuthenticatedForumRoute,
+  AuthenticatedFeedRoute: AuthenticatedFeedRouteWithChildren,
+  AuthenticatedForumRoute: AuthenticatedForumRouteWithChildren,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMechanicPanelRoute: AuthenticatedMechanicPanelRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
@@ -425,13 +486,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

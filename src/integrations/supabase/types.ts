@@ -200,6 +200,156 @@ export type Database = {
           },
         ]
       }
+      forum_comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "forum_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_comments: {
+        Row: {
+          author_avatar: string
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          like_count: number
+          post_id: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar?: string
+          author_name?: string
+          content: string
+          created_at?: string
+          id?: string
+          like_count?: number
+          post_id: string
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_avatar?: string
+          author_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          like_count?: number
+          post_id?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_posts: {
+        Row: {
+          author_avatar: string
+          author_name: string
+          body: string
+          comment_count: number
+          created_at: string
+          id: string
+          like_count: number
+          media_type: string | null
+          media_url: string | null
+          source: string
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar?: string
+          author_name?: string
+          body: string
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          media_type?: string | null
+          media_url?: string | null
+          source?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_avatar?: string
+          author_name?: string
+          body?: string
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          media_type?: string | null
+          media_url?: string | null
+          source?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       images: {
         Row: {
           created_at: string
@@ -671,6 +821,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_follows: {
+        Row: {
+          created_at: string
+          followee_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followee_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followee_id?: string
+          follower_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
