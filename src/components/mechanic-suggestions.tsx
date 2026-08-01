@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MapPin, Phone, MessageCircle, Send, Star, Loader2, X, AlertCircle } from "lucide-react";
@@ -20,7 +21,6 @@ import {
   type Specialty,
   type VehicleForMessage,
 } from "@/lib/mechanic-data";
-
 
 type Mechanic = {
   id: string;
@@ -79,10 +79,7 @@ export function MechanicSuggestions({
   }, [vehicleId, vehiclesQ.data]);
 
   const listQ = useQuery({
-    queryKey: [
-      "nearby-mechanics",
-      { specialties, coords, city: effectiveCity },
-    ],
+    queryKey: ["nearby-mechanics", { specialties, coords, city: effectiveCity }],
     queryFn: () =>
       listFn({
         data: {
@@ -118,14 +115,14 @@ export function MechanicSuggestions({
   useEffect(() => {
     if (!coords || listQ.isLoading || listQ.isFetching || importMut.isPending) return;
     const results = (listQ.data ?? []) as Mechanic[];
-    const hasEnoughNearby = results.filter((m) => m.distance_km != null && m.distance_km <= 25).length >= 3;
+    const hasEnoughNearby =
+      results.filter((m) => m.distance_km != null && m.distance_km <= 25).length >= 3;
     if (hasEnoughNearby) return;
     const key = `${coords.lat.toFixed(3)},${coords.lng.toFixed(3)}:${specialties.join("|")}`;
     if (importTriedRef.current.has(key)) return;
     importTriedRef.current.add(key);
     importMut.mutate(coords);
   }, [coords, specialties, listQ.data, listQ.isFetching, listQ.isLoading, importMut]);
-
 
   const requestLocation = (silent = false) => {
     if (!("geolocation" in navigator)) {
@@ -151,7 +148,9 @@ export function MechanicSuggestions({
         setAccuracy(best.acc);
 
         if (best.acc > 500 && !silent) {
-          toast.info(`Konum kabaca alındı (±${Math.round(best.acc)} m). Daha net için 'Değiştir' → tekrar dene.`);
+          toast.info(
+            `Konum kabaca alındı (±${Math.round(best.acc)} m). Daha net için 'Değiştir' → tekrar dene.`,
+          );
         }
         return;
       }
@@ -179,7 +178,6 @@ export function MechanicSuggestions({
     );
     const timeoutId = setTimeout(() => finish(), 12000);
   };
-
 
   // Sohbet açıldığında otomatik olarak net konumu iste (kullanıcı butona basmak zorunda kalmasın)
   useEffect(() => {
@@ -261,20 +259,24 @@ export function MechanicSuggestions({
 
       {(listQ.isLoading || importMut.isPending) && (coords || effectiveCity) && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yakındaki ustalar Tavily ile web'de aranıyor…
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yakındaki ustalar Tavily ile web'de
+          aranıyor…
         </div>
       )}
 
       {listQ.isError && (
         <div className="flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>{listQ.error instanceof Error ? listQ.error.message : "Yakındaki ustalar getirilemedi."}</span>
+          <span>
+            {listQ.error instanceof Error ? listQ.error.message : "Yakındaki ustalar getirilemedi."}
+          </span>
         </div>
       )}
 
       {listQ.data && listQ.data.length === 0 && !importMut.isPending && (
         <div className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
-          Bu bölgede uygun uzmanlıkta doğrulanmış usta bulunamadı. Konumu tekrar almayı veya farklı bir şehir seçmeyi dene.
+          Bu bölgede uygun uzmanlıkta doğrulanmış usta bulunamadı. Konumu tekrar almayı veya farklı
+          bir şehir seçmeyi dene.
         </div>
       )}
 
@@ -327,7 +329,13 @@ function MechanicCard({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h4 className="truncate text-sm font-semibold">{m.business_name}</h4>
+            <Link
+              to="/mechanics/$id"
+              params={{ id: m.id }}
+              className="truncate text-sm font-semibold hover:underline"
+            >
+              {m.business_name}
+            </Link>
             {m.avg_rating > 0 && (
               <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
                 <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
@@ -459,9 +467,7 @@ function QuoteRequestForm({
           maxLength={2000}
           className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
         />
-        <label className="mb-1 mt-2 block text-[11px] font-medium">
-          Tercih ettiğin iletişim
-        </label>
+        <label className="mb-1 mt-2 block text-[11px] font-medium">Tercih ettiğin iletişim</label>
         <div className="flex gap-1">
           {(
             [

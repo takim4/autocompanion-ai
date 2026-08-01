@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useMemo, useRef, useState } from "react";
@@ -34,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/forum")({
 
 type ForumPostRow = {
   id: string;
+  user_id: string | null;
   title: string;
   body: string;
   tags: string[];
@@ -93,9 +94,10 @@ function ForumPage() {
         {candidates.length > 0 && (
           <div className="-mb-1 flex gap-3 overflow-x-auto pb-1 md:hidden">
             {candidates.map((u) => (
-              <button
+              <Link
                 key={u.id}
-                onClick={() => followMut.mutate(u.id)}
+                to="/u/$userId"
+                params={{ userId: u.id }}
                 className="flex shrink-0 flex-col items-center gap-1"
               >
                 <span
@@ -112,7 +114,7 @@ function ForumPage() {
                 <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
                   {u.username ?? u.display_name ?? "kullanıcı"}
                 </span>
-              </button>
+              </Link>
             ))}
           </div>
         )}
@@ -155,7 +157,9 @@ function ForumPage() {
           ))}
           {postsQ.data && posts.length === 0 && (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              {query ? `"${query}" için sonuç bulunamadı.` : "Henüz gönderi yok — ilkini sen paylaş."}
+              {query
+                ? `"${query}" için sonuç bulunamadı.`
+                : "Henüz gönderi yok — ilkini sen paylaş."}
             </p>
           )}
         </section>
@@ -167,7 +171,9 @@ function ForumPage() {
           <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Takip Edilenler
           </h3>
-          {candidatesQ.isLoading && <p className="px-1 text-xs text-muted-foreground">Yükleniyor…</p>}
+          {candidatesQ.isLoading && (
+            <p className="px-1 text-xs text-muted-foreground">Yükleniyor…</p>
+          )}
           {candidates.length === 0 && !candidatesQ.isLoading && (
             <p className="px-1 text-xs text-muted-foreground">
               Henüz takip edebileceğin başka kullanıcı yok.
@@ -175,13 +181,17 @@ function ForumPage() {
           )}
           <ul className="space-y-1">
             {candidates.map((u) => (
-              <li key={u.id}>
-                <button
-                  onClick={() => followMut.mutate(u.id)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent/30"
+              <li
+                key={u.id}
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/30"
+              >
+                <Link
+                  to="/u/$userId"
+                  params={{ userId: u.id }}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-sm"
                 >
                   <span
-                    className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-base ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-base ${
                       u.is_following ? "bg-primary/15" : "bg-muted"
                     }`}
                   >
@@ -194,13 +204,14 @@ function ForumPage() {
                   <span className="min-w-0 flex-1 truncate">
                     {u.username ?? u.display_name ?? "kullanıcı"}
                   </span>
-                  <span
-                    className={`shrink-0 text-[11px] font-medium ${
-                      u.is_following ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {u.is_following ? "Takipte" : "Takip Et"}
-                  </span>
+                </Link>
+                <button
+                  onClick={() => followMut.mutate(u.id)}
+                  className={`shrink-0 text-[11px] font-medium ${
+                    u.is_following ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {u.is_following ? "Takipte" : "Takip Et"}
                 </button>
               </li>
             ))}
@@ -231,7 +242,9 @@ function ComposePost() {
         media_url = uploaded.url;
         media_type = uploaded.type;
       }
-      return createFn({ data: { title: text.trim(), body: text.trim(), tags: [], media_url, media_type } });
+      return createFn({
+        data: { title: text.trim(), body: text.trim(), tags: [], media_url, media_type },
+      });
     },
     onSuccess: () => {
       toast.success("Gönderin foruma eklendi.");
@@ -283,7 +296,11 @@ function ComposePost() {
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
           aria-label="Paylaş"
         >
-          {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {mut.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
         </button>
       </div>
 
@@ -305,8 +322,20 @@ function ComposePost() {
       )}
 
       <div className="mt-2 flex gap-2 pl-11 text-xs text-muted-foreground">
-        <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={attach("photo")} />
-        <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={attach("video")} />
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={attach("photo")}
+        />
+        <input
+          ref={videoInputRef}
+          type="file"
+          accept="video/*"
+          className="hidden"
+          onChange={attach("video")}
+        />
         <button
           onClick={() => photoInputRef.current?.click()}
           className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-accent/30 hover:text-foreground"
@@ -334,7 +363,11 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
       qc.setQueryData<ForumPostRow[]>(["forum-posts"], (old) =>
         (old ?? []).map((p) =>
           p.id === post.id
-            ? { ...p, liked_by_me: !p.liked_by_me, like_count: p.like_count + (p.liked_by_me ? -1 : 1) }
+            ? {
+                ...p,
+                liked_by_me: !p.liked_by_me,
+                like_count: p.like_count + (p.liked_by_me ? -1 : 1),
+              }
             : p,
         ),
       );
@@ -342,26 +375,45 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
     onError: () => qc.invalidateQueries({ queryKey: ["forum-posts"] }),
   });
 
+  const navigate = useNavigate();
+
   return (
-    <Link
-      to="/forum/$postId"
-      params={{ postId: post.id }}
-      className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => navigate({ to: "/forum/$postId", params: { postId: post.id } })}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") navigate({ to: "/forum/$postId", params: { postId: post.id } });
+      }}
+      className="cursor-pointer rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
     >
       <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
-          {post.author_avatar?.startsWith("http") ? (
-            <img src={post.author_avatar} alt="" className="h-full w-full object-cover" />
-          ) : (
-            post.author_avatar
-          )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{post.author_name}</p>
-          <p className="text-[11px] text-muted-foreground">
-            {new Date(post.created_at).toLocaleDateString("tr-TR")}
-          </p>
-        </div>
+        {post.user_id ? (
+          <Link
+            to="/u/$userId"
+            params={{ userId: post.user_id }}
+            onClick={(e) => e.stopPropagation()}
+            className="flex min-w-0 flex-1 items-center gap-2 hover:underline"
+          >
+            <AuthorAvatar avatar={post.author_avatar} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{post.author_name}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {new Date(post.created_at).toLocaleDateString("tr-TR")}
+              </p>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <AuthorAvatar avatar={post.author_avatar} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{post.author_name}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {new Date(post.created_at).toLocaleDateString("tr-TR")}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <h3 className="mt-3 text-base font-semibold">{post.title}</h3>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.body}</p>
@@ -371,7 +423,10 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
       {post.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {post.tags.map((t) => (
-            <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+            <span
+              key={t}
+              className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+            >
               #{t}
             </span>
           ))}
@@ -386,12 +441,25 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
           }}
           className={`flex items-center gap-1 ${post.liked_by_me ? "text-accent" : ""}`}
         >
-          <Heart className={`h-3.5 w-3.5 ${post.liked_by_me ? "fill-current" : ""}`} /> {post.like_count}
+          <Heart className={`h-3.5 w-3.5 ${post.liked_by_me ? "fill-current" : ""}`} />{" "}
+          {post.like_count}
         </button>
         <span className="flex items-center gap-1">
           <MessageCircle className="h-3.5 w-3.5" /> {post.comment_count}
         </span>
       </div>
-    </Link>
+    </div>
+  );
+}
+
+function AuthorAvatar({ avatar }: { avatar: string }) {
+  return (
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
+      {avatar?.startsWith("http") ? (
+        <img src={avatar} alt="" className="h-full w-full object-cover" />
+      ) : (
+        avatar
+      )}
+    </span>
   );
 }

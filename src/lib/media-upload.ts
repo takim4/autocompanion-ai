@@ -9,14 +9,16 @@ export type UploadedMedia = { url: string; type: "image" | "video" };
  */
 export async function uploadUserMedia(
   file: File,
-  folder: "forum" | "social",
+  folder: "forum" | "social" | "ads",
 ): Promise<UploadedMedia> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Bu işlem için oturum açman gerekiyor.");
 
-  const ext = file.name.includes(".") ? file.name.split(".").pop() : file.type.split("/")[1] || "bin";
+  const ext = file.name.includes(".")
+    ? file.name.split(".").pop()
+    : file.type.split("/")[1] || "bin";
   const path = `${user.id}/${folder}/${crypto.randomUUID()}.${ext}`;
 
   const { error } = await supabase.storage.from("user-media").upload(path, file, {
