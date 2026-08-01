@@ -822,6 +822,83 @@ export type Database = {
           },
         ]
       }
+      social_post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          author_avatar: string
+          author_name: string
+          caption: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          kind: string
+          like_count: number
+          media_type: string
+          media_url: string
+          source: string
+          tag: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar?: string
+          author_name?: string
+          caption?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind: string
+          like_count?: number
+          media_type: string
+          media_url: string
+          source?: string
+          tag?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_avatar?: string
+          author_name?: string
+          caption?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          like_count?: number
+          media_type?: string
+          media_url?: string
+          source?: string
+          tag?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_follows: {
         Row: {
           created_at: string
