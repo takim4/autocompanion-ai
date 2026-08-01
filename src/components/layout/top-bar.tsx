@@ -10,7 +10,7 @@ export function TopBar({ title }: { title?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/90 px-4 backdrop-blur">
+    <header className="safe-top sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/90 px-4 backdrop-blur">
       <Link to="/forum" className="flex shrink-0 items-center gap-2">
         <img
           src={logoAsset.url}

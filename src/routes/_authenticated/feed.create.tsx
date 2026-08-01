@@ -1,22 +1,35 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   ArrowLeft,
   Camera,
   Circle,
   Download,
   FlipHorizontal2,
+  Loader2,
   RotateCcw,
   Radio,
+  Send,
   Sparkles,
   Square,
   Timer,
   Video as VideoIcon,
   Zap,
 } from "lucide-react";
+import { createSocialPost } from "@/lib/social.functions";
+import { uploadUserMedia } from "@/lib/media-upload";
+
+const searchSchema = z.object({
+  as: fallback(z.enum(["reel", "story"]), "reel").default("reel"),
+});
 
 export const Route = createFileRoute("/_authenticated/feed/create")({
+  validateSearch: zodValidator(searchSchema),
   component: FeedCreatePage,
   head: () => ({ meta: [{ title: "Oluştur — AutoSocial" }] }),
 });
@@ -41,6 +54,8 @@ function pickSupportedMimeType(): string | undefined {
 }
 
 function FeedCreatePage() {
+  const { as } = Route.useSearch();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("video");
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -52,6 +67,7 @@ function FeedCreatePage() {
   const [filterIndex, setFilterIndex] = useState(0);
   const [photo, setPhoto] = useState<string | null>(null);
   const [videoResult, setVideoResult] = useState<string | null>(null);
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -134,7 +150,10 @@ function FeedCreatePage() {
     ctx.drawImage(video, 0, 0);
     canvas.toBlob(
       (blob) => {
-        if (blob) setPhoto(URL.createObjectURL(blob));
+        if (blob) {
+          setPhoto(URL.createObjectURL(blob));
+          setResultBlob(blob);
+        }
       },
       "image/jpeg",
       0.92,
@@ -151,6 +170,7 @@ function FeedCreatePage() {
     recorder.onstop = () => {
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "video/webm" });
       setVideoResult(URL.createObjectURL(blob));
+      setResultBlob(blob);
     };
     recorder.start();
     recorderRef.current = recorder;
@@ -212,9 +232,27 @@ function FeedCreatePage() {
     if (videoResult) URL.revokeObjectURL(videoResult);
     setPhoto(null);
     setVideoResult(null);
+    setResultBlob(null);
   }
 
   const result = photo ?? videoResult;
+
+  const createPostFn = useServerFn(createSocialPost);
+  const publishMut = useMutation({
+    mutationFn: async () => {
+      if (!resultBlob) throw new Error("Paylaşılacak bir şey yok.");
+      const file = new File([resultBlob], photo ? "capture.jpg" : "capture.webm", {
+        type: resultBlob.type || (photo ? "image/jpeg" : "video/webm"),
+      });
+      const uploaded = await uploadUserMedia(file, "social");
+      return createPostFn({ data: { kind: as, media_url: uploaded.url, media_type: uploaded.type } });
+    },
+    onSuccess: () => {
+      toast.success(as === "story" ? "Hikayen paylaşıldı." : "Gönderin paylaşıldı.");
+      navigate({ to: "/feed" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     // Telefonda tam ekran kamera arayüzü; tablet/masaüstünde ortalanmış bir
@@ -330,20 +368,33 @@ function FeedCreatePage() {
         {/* Video, foto, canlı yayın seçimi */}
         <div className="mt-3 space-y-3 px-4 pb-4">
           {result ? (
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={retake}
-                className="flex items-center gap-1.5 rounded-full bg-card px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/30"
+                disabled={publishMut.isPending}
+                className="flex items-center gap-1.5 rounded-full bg-card px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/30 disabled:opacity-50"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> Tekrar çek
               </button>
               <a
                 href={result}
                 download={photo ? "autosocial-foto.jpg" : "autosocial-video.webm"}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                className="flex items-center gap-1.5 rounded-full bg-card px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-accent/30"
               >
                 <Download className="h-3.5 w-3.5" /> İndir
               </a>
+              <button
+                onClick={() => publishMut.mutate()}
+                disabled={publishMut.isPending}
+                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {publishMut.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
+                Paylaş
+              </button>
             </div>
           ) : (
             <>

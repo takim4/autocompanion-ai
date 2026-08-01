@@ -159,4 +159,24 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Telefon/tablette uygulama hissi: kaydırınca sayfanın kendisi zıplamasın
+     (aşağıdaki içerik alanları kendi içinde kaydırılabilir kalır), çift
+     dokunmayla yakınlaştırma olmasın. Masaüstünde (fare/imleç) bu kısıtlar
+     hissedilmez, site gibi normal davranır. */
+  @media (pointer: coarse) {
+    html, body {
+      overscroll-behavior-y: contain;
+      touch-action: manipulation;
+    }
+  }
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

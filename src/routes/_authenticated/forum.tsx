@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Camera,
   Heart,
   ImagePlus,
+  Loader2,
   MessageCircle,
   Search,
   Send,
@@ -12,30 +15,65 @@ import {
   X,
 } from "lucide-react";
 import { AdBanner, AdSquare, NativeAdCard } from "@/components/ads/ad-slot";
-import { FOLLOWED_USERS, TREND_TOPICS, type ForumPost } from "@/lib/forum-data";
-import { isImageSrc, useForumStore } from "@/stores/forum-store";
+import { LoadingState } from "@/components/data-state";
+import { TREND_TOPICS } from "@/lib/forum-data";
+import {
+  createForumComment,
+  createForumPost,
+  listForumPosts,
+  listFollowCandidates,
+  toggleFollow,
+  toggleForumPostLike,
+} from "@/lib/forum.functions";
+import { uploadUserMedia } from "@/lib/media-upload";
 
 export const Route = createFileRoute("/_authenticated/forum")({
   component: ForumPage,
   head: () => ({ meta: [{ title: "Forum — AutoSocial" }] }),
 });
 
+type ForumPostRow = {
+  id: string;
+  title: string;
+  body: string;
+  tags: string[];
+  author_name: string;
+  author_avatar: string;
+  media_url: string | null;
+  media_type: "image" | "video" | null;
+  like_count: number;
+  comment_count: number;
+  liked_by_me: boolean;
+  created_at: string;
+};
+
 function ForumPage() {
   const [query, setQuery] = useState("");
-  const allPosts = useForumStore((s) => s.posts);
-  const addPost = useForumStore((s) => s.addPost);
-  const followedUserIds = useForumStore((s) => s.followedUserIds);
-  const toggleFollow = useForumStore((s) => s.toggleFollow);
+  const qc = useQueryClient();
 
+  const listFn = useServerFn(listForumPosts);
+  const postsQ = useQuery({ queryKey: ["forum-posts"], queryFn: () => listFn() });
+
+  const candidatesFn = useServerFn(listFollowCandidates);
+  const candidatesQ = useQuery({ queryKey: ["follow-candidates"], queryFn: () => candidatesFn() });
+
+  const followFn = useServerFn(toggleFollow);
+  const followMut = useMutation({
+    mutationFn: (followee_id: string) => followFn({ data: { followee_id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["follow-candidates"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const allPosts = (postsQ.data ?? []) as ForumPostRow[];
   const posts = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return allPosts;
     return allPosts.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q)),
+      (p) => p.title.toLowerCase().includes(q) || p.tags.some((t) => t.toLowerCase().includes(q)),
     );
   }, [allPosts, query]);
+
+  const candidates = candidatesQ.data ?? [];
 
   return (
     <div className="-mx-4 -my-6 grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
@@ -52,26 +90,32 @@ function ForumPage() {
         </div>
 
         {/* Takip Edilenler — mobilde yatay şerit, md+ ekranda sağ panelde */}
-        <div className="-mb-1 flex gap-3 overflow-x-auto pb-1 md:hidden">
-          {FOLLOWED_USERS.map((u) => (
-            <button
-              key={u.id}
-              onClick={() => toggleFollow(u.id)}
-              className="flex shrink-0 flex-col items-center gap-1"
-            >
-              <span
-                className={`flex h-11 w-11 items-center justify-center rounded-full text-lg ring-2 ${
-                  followedUserIds.includes(u.id) ? "bg-primary/15 ring-primary" : "bg-muted ring-transparent"
-                }`}
+        {candidates.length > 0 && (
+          <div className="-mb-1 flex gap-3 overflow-x-auto pb-1 md:hidden">
+            {candidates.map((u) => (
+              <button
+                key={u.id}
+                onClick={() => followMut.mutate(u.id)}
+                className="flex shrink-0 flex-col items-center gap-1"
               >
-                {u.avatar}
-              </span>
-              <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
-                {u.user}
-              </span>
-            </button>
-          ))}
-        </div>
+                <span
+                  className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-lg ring-2 ${
+                    u.is_following ? "bg-primary/15 ring-primary" : "bg-muted ring-transparent"
+                  }`}
+                >
+                  {u.avatar_url ? (
+                    <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    "🙂"
+                  )}
+                </span>
+                <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
+                  {u.username ?? u.display_name ?? "kullanıcı"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Popüler / Trend Konular */}
         <section>
@@ -91,21 +135,27 @@ function ForumPage() {
           </div>
         </section>
 
-        <ComposePost onSubmit={addPost} />
+        <ComposePost />
 
         <AdBanner />
 
         {/* Forum Kısmı */}
         <section className="space-y-3">
+          {postsQ.isLoading && <LoadingState label="Gönderiler yükleniyor…" />}
+          {postsQ.isError && (
+            <p className="py-6 text-center text-sm text-destructive">
+              {postsQ.error instanceof Error ? postsQ.error.message : "Gönderiler yüklenemedi."}
+            </p>
+          )}
           {posts.map((post, i) => (
             <Fragment key={post.id}>
               <ForumPostCard post={post} />
               {i === 1 && <NativeAdCard />}
             </Fragment>
           ))}
-          {posts.length === 0 && (
+          {postsQ.data && posts.length === 0 && (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              "{query}" için sonuç bulunamadı.
+              {query ? `"${query}" için sonuç bulunamadı.` : "Henüz gönderi yok — ilkini sen paylaş."}
             </p>
           )}
         </section>
@@ -117,34 +167,43 @@ function ForumPage() {
           <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Takip Edilenler
           </h3>
+          {candidatesQ.isLoading && <p className="px-1 text-xs text-muted-foreground">Yükleniyor…</p>}
+          {candidates.length === 0 && !candidatesQ.isLoading && (
+            <p className="px-1 text-xs text-muted-foreground">
+              Henüz takip edebileceğin başka kullanıcı yok.
+            </p>
+          )}
           <ul className="space-y-1">
-            {FOLLOWED_USERS.map((u) => {
-              const following = followedUserIds.includes(u.id);
-              return (
-                <li key={u.id}>
-                  <button
-                    onClick={() => toggleFollow(u.id)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent/30"
+            {candidates.map((u) => (
+              <li key={u.id}>
+                <button
+                  onClick={() => followMut.mutate(u.id)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent/30"
+                >
+                  <span
+                    className={`flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-base ${
+                      u.is_following ? "bg-primary/15" : "bg-muted"
+                    }`}
                   >
-                    <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-full text-base ${
-                        following ? "bg-primary/15" : "bg-muted"
-                      }`}
-                    >
-                      {u.avatar}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate">{u.user}</span>
-                    <span
-                      className={`shrink-0 text-[11px] font-medium ${
-                        following ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      {following ? "Takipte" : "Takip Et"}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+                    {u.avatar_url ? (
+                      <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      "🙂"
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {u.username ?? u.display_name ?? "kullanıcı"}
+                  </span>
+                  <span
+                    className={`shrink-0 text-[11px] font-medium ${
+                      u.is_following ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {u.is_following ? "Takipte" : "Takip Et"}
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
         <AdSquare />
@@ -153,34 +212,50 @@ function ForumPage() {
   );
 }
 
-function ComposePost({
-  onSubmit,
-}: {
-  onSubmit: (input: { title: string; body: string; image?: string }) => ForumPost;
-}) {
+function ComposePost() {
+  const qc = useQueryClient();
+  const createFn = useServerFn(createForumPost);
   const [text, setText] = useState("");
-  const [image, setImage] = useState<string | null>(null);
-  const [imageKind, setImageKind] = useState<"photo" | "video" | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [fileKind, setFileKind] = useState<"photo" | "video" | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const submit = () => {
-    const body = text.trim();
-    if (!body) return;
-    onSubmit({ title: body, body, image: image ?? undefined });
-    toast.success("Gönderin foruma eklendi.");
-    setText("");
-    if (image) URL.revokeObjectURL(image);
-    setImage(null);
-    setImageKind(null);
+  const mut = useMutation({
+    mutationFn: async () => {
+      let media_url: string | undefined;
+      let media_type: "image" | "video" | undefined;
+      if (file) {
+        const uploaded = await uploadUserMedia(file, "forum");
+        media_url = uploaded.url;
+        media_type = uploaded.type;
+      }
+      return createFn({ data: { title: text.trim(), body: text.trim(), tags: [], media_url, media_type } });
+    },
+    onSuccess: () => {
+      toast.success("Gönderin foruma eklendi.");
+      qc.invalidateQueries({ queryKey: ["forum-posts"] });
+      setText("");
+      clearAttachment();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const clearAttachment = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(null);
+    setPreview(null);
+    setFileKind(null);
   };
 
   const attach = (kind: "photo" | "video") => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (image) URL.revokeObjectURL(image);
-    setImage(URL.createObjectURL(file));
-    setImageKind(kind);
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (preview) URL.revokeObjectURL(preview);
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+    setFileKind(kind);
     e.target.value = "";
   };
 
@@ -194,37 +269,33 @@ function ComposePost({
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !mut.isPending) {
               e.preventDefault();
-              submit();
+              if (text.trim()) mut.mutate();
             }
           }}
           placeholder="Bir soru sor ya da deneyimini paylaş…"
           className="flex-1 rounded-full border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
         <button
-          onClick={submit}
-          disabled={!text.trim()}
+          onClick={() => mut.mutate()}
+          disabled={!text.trim() || mut.isPending}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
           aria-label="Paylaş"
         >
-          <Send className="h-4 w-4" />
+          {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </button>
       </div>
 
-      {image && (
+      {preview && (
         <div className="relative ml-11 mt-2 inline-block">
-          {imageKind === "video" ? (
-            <video src={image} className="h-24 rounded-lg" muted controls />
+          {fileKind === "video" ? (
+            <video src={preview} className="h-24 rounded-lg" muted controls />
           ) : (
-            <img src={image} alt="Ek" className="h-24 rounded-lg object-cover" />
+            <img src={preview} alt="Ek" className="h-24 rounded-lg object-cover" />
           )}
           <button
-            onClick={() => {
-              URL.revokeObjectURL(image);
-              setImage(null);
-              setImageKind(null);
-            }}
+            onClick={clearAttachment}
             className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background"
             aria-label="Eki kaldır"
           >
@@ -234,20 +305,8 @@ function ComposePost({
       )}
 
       <div className="mt-2 flex gap-2 pl-11 text-xs text-muted-foreground">
-        <input
-          ref={photoInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={attach("photo")}
-        />
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={attach("video")}
-        />
+        <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={attach("photo")} />
+        <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={attach("video")} />
         <button
           onClick={() => photoInputRef.current?.click()}
           className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-accent/30 hover:text-foreground"
@@ -265,10 +324,23 @@ function ComposePost({
   );
 }
 
-function ForumPostCard({ post }: { post: ForumPost }) {
-  const likedPostIds = useForumStore((s) => s.likedPostIds);
-  const toggleLike = useForumStore((s) => s.toggleLike);
-  const liked = likedPostIds.includes(post.id);
+function ForumPostCard({ post }: { post: ForumPostRow }) {
+  const qc = useQueryClient();
+  const toggleFn = useServerFn(toggleForumPostLike);
+  const mut = useMutation({
+    mutationFn: () => toggleFn({ data: { post_id: post.id } }),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["forum-posts"] });
+      qc.setQueryData<ForumPostRow[]>(["forum-posts"], (old) =>
+        (old ?? []).map((p) =>
+          p.id === post.id
+            ? { ...p, liked_by_me: !p.liked_by_me, like_count: p.like_count + (p.liked_by_me ? -1 : 1) }
+            : p,
+        ),
+      );
+    },
+    onError: () => qc.invalidateQueries({ queryKey: ["forum-posts"] }),
+  });
 
   return (
     <Link
@@ -277,27 +349,29 @@ function ForumPostCard({ post }: { post: ForumPost }) {
       className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
     >
       <div className="flex items-center gap-2">
-        {isImageSrc(post.avatar) ? (
-          <img src={post.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-base">
-            {post.avatar}
-          </span>
-        )}
+        <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
+          {post.author_avatar?.startsWith("http") ? (
+            <img src={post.author_avatar} alt="" className="h-full w-full object-cover" />
+          ) : (
+            post.author_avatar
+          )}
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{post.author}</p>
-          <p className="text-[11px] text-muted-foreground">{post.time}</p>
+          <p className="truncate text-sm font-semibold">{post.author_name}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {new Date(post.created_at).toLocaleDateString("tr-TR")}
+          </p>
         </div>
       </div>
       <h3 className="mt-3 text-base font-semibold">{post.title}</h3>
-      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
+      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.body}</p>
+      {post.media_url && post.media_type === "image" && (
+        <img src={post.media_url} alt="" className="mt-2 max-h-56 w-full rounded-lg object-cover" />
+      )}
       {post.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {post.tags.map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-            >
+            <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
               #{t}
             </span>
           ))}
@@ -308,14 +382,14 @@ function ForumPostCard({ post }: { post: ForumPost }) {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            toggleLike(post.id);
+            mut.mutate();
           }}
-          className={`flex items-center gap-1 ${liked ? "text-accent" : ""}`}
+          className={`flex items-center gap-1 ${post.liked_by_me ? "text-accent" : ""}`}
         >
-          <Heart className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`} /> {post.likes}
+          <Heart className={`h-3.5 w-3.5 ${post.liked_by_me ? "fill-current" : ""}`} /> {post.like_count}
         </button>
         <span className="flex items-center gap-1">
-          <MessageCircle className="h-3.5 w-3.5" /> {post.commentCount}
+          <MessageCircle className="h-3.5 w-3.5" /> {post.comment_count}
         </span>
       </div>
     </Link>
