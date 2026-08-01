@@ -4,7 +4,7 @@ import { NAV_ITEMS } from "@/components/layout/nav-items";
 export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="sticky bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur md:hidden">
+    <nav className="safe-bottom sticky bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur md:hidden">
       <ul className="flex items-center justify-around">
         {NAV_ITEMS.map((it) => {
           const active =

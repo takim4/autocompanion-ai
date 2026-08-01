@@ -1,28 +1,56 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Heart, Send } from "lucide-react";
+import { ArrowLeft, Heart, Loader2, Send } from "lucide-react";
 import { AdBanner } from "@/components/ads/ad-slot";
-import { EmptyState } from "@/components/data-state";
-import { FORUM_POSTS } from "@/lib/forum-data";
-import { isImageSrc, useForumStore } from "@/stores/forum-store";
+import { EmptyState, LoadingState } from "@/components/data-state";
+import {
+  createForumComment,
+  getForumPost,
+  toggleForumCommentLike,
+  toggleForumPostLike,
+} from "@/lib/forum.functions";
 
 export const Route = createFileRoute("/_authenticated/forum/$postId")({
   component: ForumPostPage,
-  head: ({ params }) => ({
-    meta: [{ title: `${FORUM_POSTS.find((p) => p.id === params.postId)?.title ?? "Gönderi"} — AutoSocial` }],
-  }),
+  head: () => ({ meta: [{ title: "Gönderi — AutoSocial" }] }),
 });
 
 function ForumPostPage() {
   const { postId } = Route.useParams();
-  const post = useForumStore((s) => s.posts.find((p) => p.id === postId));
-  const likedPostIds = useForumStore((s) => s.likedPostIds);
-  const likedCommentIds = useForumStore((s) => s.likedCommentIds);
-  const toggleLike = useForumStore((s) => s.toggleLike);
-  const toggleCommentLike = useForumStore((s) => s.toggleCommentLike);
-  const addComment = useForumStore((s) => s.addComment);
-  const [comment, setComment] = useState("");
+  const qc = useQueryClient();
+  const getFn = useServerFn(getForumPost);
+  const postQ = useQuery({
+    queryKey: ["forum-post", postId],
+    queryFn: () => getFn({ data: { id: postId } }),
+  });
 
+  const likeFn = useServerFn(toggleForumPostLike);
+  const likeMut = useMutation({
+    mutationFn: () => likeFn({ data: { post_id: postId } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["forum-post", postId] }),
+  });
+
+  const [comment, setComment] = useState("");
+  const commentFn = useServerFn(createForumComment);
+  const commentMut = useMutation({
+    mutationFn: (content: string) => commentFn({ data: { post_id: postId, content } }),
+    onSuccess: () => {
+      setComment("");
+      qc.invalidateQueries({ queryKey: ["forum-post", postId] });
+    },
+  });
+
+  const commentLikeFn = useServerFn(toggleForumCommentLike);
+  const commentLikeMut = useMutation({
+    mutationFn: (comment_id: string) => commentLikeFn({ data: { comment_id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["forum-post", postId] }),
+  });
+
+  if (postQ.isLoading) return <LoadingState label="Gönderi yükleniyor…" />;
+
+  const post = postQ.data;
   if (!post) {
     return (
       <EmptyState
@@ -37,8 +65,6 @@ function ForumPostPage() {
     );
   }
 
-  const liked = likedPostIds.includes(post.id);
-
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <Link
@@ -51,26 +77,25 @@ function ForumPostPage() {
       {/* Başlık, etiketler */}
       <header className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-2">
-          {isImageSrc(post.avatar) ? (
-            <img src={post.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
-          ) : (
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-base">
-              {post.avatar}
-            </span>
-          )}
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
+            {post.author_avatar?.startsWith("http") ? (
+              <img src={post.author_avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              post.author_avatar
+            )}
+          </span>
           <div>
-            <p className="text-sm font-semibold">{post.author}</p>
-            <p className="text-[11px] text-muted-foreground">{post.time}</p>
+            <p className="text-sm font-semibold">{post.author_name}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {new Date(post.created_at).toLocaleString("tr-TR")}
+            </p>
           </div>
         </div>
         <h1 className="mt-3 text-xl font-bold">{post.title}</h1>
-        {post.tags.length > 0 && (
+        {post.tags?.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {post.tags.map((t) => (
-              <span
-                key={t}
-                className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-              >
+            {post.tags.map((t: string) => (
+              <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                 #{t}
               </span>
             ))}
@@ -80,26 +105,25 @@ function ForumPostPage() {
 
       {/* Gönderi + foto */}
       <section className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="flex h-56 items-center justify-center overflow-hidden bg-gradient-to-br from-primary/10 via-card to-accent/10 text-6xl">
-          {isImageSrc(post.image) ? (
-            <img src={post.image} alt="" className="h-full w-full object-cover" />
+        {post.media_url ? (
+          post.media_type === "video" ? (
+            <video src={post.media_url} controls className="h-56 w-full object-cover" />
           ) : (
-            post.image
-          )}
-        </div>
+            <img src={post.media_url} alt="" className="h-56 w-full object-cover" />
+          )
+        ) : null}
         <div className="p-5">
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.body}</p>
           <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
             <button
-              onClick={() => toggleLike(post.id)}
-              className={`flex items-center gap-1.5 ${liked ? "text-accent" : ""}`}
+              onClick={() => likeMut.mutate()}
+              disabled={likeMut.isPending}
+              className={`flex items-center gap-1.5 ${post.liked_by_me ? "text-accent" : ""}`}
             >
-              <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-              {post.likes}
+              <Heart className={`h-4 w-4 ${post.liked_by_me ? "fill-current" : ""}`} />
+              {post.like_count}
             </button>
-            <span className="flex items-center gap-1.5">
-              {post.comments.length} yorum
-            </span>
+            <span className="flex items-center gap-1.5">{post.comments.length} yorum</span>
           </div>
         </div>
       </section>
@@ -114,31 +138,44 @@ function ForumPostPage() {
       <section className="rounded-2xl border border-border bg-card p-5">
         <h2 className="mb-3 text-sm font-semibold">Yorumlar ({post.comments.length})</h2>
         <div className="space-y-3">
-          {post.comments.map((c) => {
-            const commentLiked = likedCommentIds.includes(c.id);
-            return (
+          {post.comments.map(
+            (c: {
+              id: string;
+              author_name: string;
+              author_avatar: string;
+              content: string;
+              created_at: string;
+              like_count: number;
+              liked_by_me: boolean;
+            }) => (
               <div key={c.id} className="flex gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm">
-                  {c.avatar}
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-sm">
+                  {c.author_avatar?.startsWith("http") ? (
+                    <img src={c.author_avatar} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    c.author_avatar
+                  )}
                 </span>
                 <div className="min-w-0 flex-1 rounded-xl bg-muted/60 px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-semibold">{c.author}</p>
-                    <p className="text-[10px] text-muted-foreground">{c.time}</p>
+                    <p className="text-xs font-semibold">{c.author_name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(c.created_at).toLocaleDateString("tr-TR")}
+                    </p>
                   </div>
                   <p className="mt-0.5 text-sm">{c.content}</p>
                   <button
-                    onClick={() => toggleCommentLike(post.id, c.id)}
+                    onClick={() => commentLikeMut.mutate(c.id)}
                     className={`mt-1 flex items-center gap-1 text-[11px] hover:text-accent ${
-                      commentLiked ? "text-accent" : "text-muted-foreground"
+                      c.liked_by_me ? "text-accent" : "text-muted-foreground"
                     }`}
                   >
-                    <Heart className={`h-3 w-3 ${commentLiked ? "fill-current" : ""}`} /> {c.likes}
+                    <Heart className={`h-3 w-3 ${c.liked_by_me ? "fill-current" : ""}`} /> {c.like_count}
                   </button>
                 </div>
               </div>
-            );
-          })}
+            ),
+          )}
           {post.comments.length === 0 && (
             <p className="text-sm text-muted-foreground">İlk yorumu sen yaz.</p>
           )}
@@ -146,9 +183,8 @@ function ForumPostPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!comment.trim()) return;
-            addComment(post.id, comment);
-            setComment("");
+            if (!comment.trim() || commentMut.isPending) return;
+            commentMut.mutate(comment.trim());
           }}
           className="mt-4 flex items-center gap-2 border-t border-border pt-3"
         >
@@ -160,11 +196,11 @@ function ForumPostPage() {
           />
           <button
             type="submit"
-            disabled={!comment.trim()}
+            disabled={!comment.trim() || commentMut.isPending}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
             aria-label="Gönder"
           >
-            <Send className="h-4 w-4" />
+            {commentMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>
         </form>
       </section>
