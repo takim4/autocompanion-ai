@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Heart,
@@ -6,12 +6,16 @@ import {
   Play,
   Plus,
   Radio,
+  Search,
   Send,
   Sparkles,
+  Video,
   Volume2,
   VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdSquare, AdVideoTile } from "@/components/ads/ad-slot";
+import { FOLLOWED_USERS } from "@/lib/forum-data";
 
 export const Route = createFileRoute("/_authenticated/feed")({
   component: FeedPage,
@@ -157,6 +161,36 @@ function FeedPage() {
         </div>
       </div>
 
+      {/* Arama (Search) */}
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            placeholder="Video, kullanıcı veya etiket ara…"
+            className="w-full rounded-xl border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <Button asChild size="sm" className="shrink-0">
+          <Link to="/feed/create">
+            <Video className="mr-1.5 h-4 w-4" /> Video Oluştur
+          </Link>
+        </Button>
+      </div>
+
+      {/* Takip Edilenler — mobilde yatay şerit, md+ ekranda sağ panelde */}
+      <div className="flex gap-3 overflow-x-auto border-b border-border px-4 py-3 md:hidden">
+        {FOLLOWED_USERS.map((u) => (
+          <button key={u.id} className="flex shrink-0 flex-col items-center gap-1">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-lg">
+              {u.avatar}
+            </span>
+            <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
+              {u.user}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Tabs */}
       <div className="sticky top-0 z-10 flex border-b border-border bg-background/95 backdrop-blur">
         {(
@@ -186,11 +220,35 @@ function FeedPage() {
         })}
       </div>
 
-      <div className="p-4">
-        {tab === "reels" && <ReelsGrid />}
-        {tab === "stories" && <StoriesGrid />}
-        {tab === "live" && <LiveGrid />}
-        {tab === "profiles" && <ProfilesGrid />}
+      <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
+        <div className="min-w-0">
+          {tab === "reels" && <ReelsGrid />}
+          {tab === "stories" && <StoriesGrid />}
+          {tab === "live" && <LiveGrid />}
+          {tab === "profiles" && <ProfilesGrid />}
+        </div>
+
+        {/* Takip Edilenler */}
+        <aside className="hidden space-y-3 md:block">
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Takip Edilenler
+            </h3>
+            <ul className="space-y-1">
+              {FOLLOWED_USERS.map((u) => (
+                <li key={u.id}>
+                  <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-accent/30">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-base">
+                      {u.avatar}
+                    </span>
+                    <span className="truncate">{u.user}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <AdSquare />
+        </aside>
       </div>
     </div>
   );
@@ -234,6 +292,7 @@ function ReelsGrid() {
           </div>
         </div>
       ))}
+      <AdVideoTile />
     </div>
   );
 }

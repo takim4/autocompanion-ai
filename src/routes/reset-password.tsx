@@ -39,7 +39,7 @@ function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password: v.password });
       if (error) throw error;
       toast.success("Şifre güncellendi");
-      nav({ to: "/home" });
+      nav({ to: "/forum" });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Hata");
     } finally {
