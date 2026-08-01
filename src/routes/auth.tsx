@@ -21,7 +21,7 @@ const REMEMBER_KEY = "autosocial:remember-email";
 
 function safeRedirect(value: string): string {
   if (value && value.startsWith("/") && !value.startsWith("//")) return value;
-  return "/home";
+  return "/forum";
 }
 
 function readStoredRedirect() {

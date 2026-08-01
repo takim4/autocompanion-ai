@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
   Award,
+  Car,
   ChevronRight,
   FileText,
   Loader2,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
-import { getMyProfile } from "@/lib/garage.functions";
+import { getMyProfile, listVehicles } from "@/lib/garage.functions";
 import { getMyRoles, importMechanicsFromGoogleMaps } from "@/lib/mechanics.functions";
 import { SPECIALTIES, SPECIALTY_LABELS, TR_CITIES, type Specialty } from "@/lib/mechanic-data";
 
@@ -31,6 +32,9 @@ function ProfilePage() {
   const rolesFn = useServerFn(getMyRoles);
   const rolesQ = useQuery({ queryKey: ["my-roles"], queryFn: () => rolesFn() });
   const isAdmin = (rolesQ.data ?? []).includes("admin");
+
+  const vehiclesFn = useServerFn(listVehicles);
+  const vehiclesQ = useQuery({ queryKey: ["vehicles"], queryFn: () => vehiclesFn() });
 
   if (q.isLoading) return <LoadingState />;
   const p = q.data;
@@ -54,6 +58,16 @@ function ProfilePage() {
       </div>
 
       <div className="grid gap-2">
+        <ProfileLink
+          to="/garage"
+          icon={<Car className="h-4 w-4" />}
+          title="Garajım"
+          desc={
+            vehiclesQ.data
+              ? `${vehiclesQ.data.length} kayıtlı araç — bakım geçmişi ve teşhis notları.`
+              : "Araçlarını yönet, bakım geçmişini ve teşhis notlarını gör."
+          }
+        />
         <ProfileLink
           to="/fact-check"
           icon={<ShieldCheck className="h-4 w-4" />}

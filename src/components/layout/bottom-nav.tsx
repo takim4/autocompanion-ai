@@ -1,12 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Car, Home, MessageSquare, Users, User } from "lucide-react";
+import { MessageSquare, Users, User, Video } from "lucide-react";
 
 const items = [
-  { to: "/garage", label: "Garaj", icon: Car },
-  { to: "/home", label: "Ana Sayfa", icon: Home },
-  { to: "/ai-chat", label: "AI", icon: MessageSquare },
   { to: "/forum", label: "Forum", icon: Users },
-  { to: "/profile", label: "Profil", icon: User },
+  { to: "/feed", label: "Sosyal Medya", icon: Video },
+  { to: "/ai-chat", label: "AI", icon: MessageSquare },
+  { to: "/profile", label: "Hesap", icon: User },
 ] as const;
 
 export function BottomNav() {

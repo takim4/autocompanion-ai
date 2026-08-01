@@ -9,7 +9,7 @@ export function TopBar({ title }: { title?: string }) {
   const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur">
-      <Link to="/home" className="flex items-center gap-2">
+      <Link to="/forum" className="flex items-center gap-2">
         <img
           src={logoAsset.url}
           alt="AutoSocial"

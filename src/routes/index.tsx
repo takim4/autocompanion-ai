@@ -13,7 +13,7 @@ function SplashPage() {
     const t = setTimeout(async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        window.location.replace("/home");
+        window.location.replace("/forum");
       } else {
         window.location.replace("/onboarding");
       }
