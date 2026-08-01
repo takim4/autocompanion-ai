@@ -207,14 +207,15 @@ function FeedCreatePage() {
   async function toggleTorch() {
     const track = stream?.getVideoTracks()[0];
     const capabilities = track?.getCapabilities?.() as
-      | (MediaTrackCapabilities & { torch?: boolean })
-      | undefined;
+      (MediaTrackCapabilities & { torch?: boolean }) | undefined;
     if (!track || !capabilities?.torch) {
       toast.info("Cihazın flaş/torch kontrolünü desteklemiyor.");
       return;
     }
     try {
-      await track.applyConstraints({ advanced: [{ torch: !torchOn } as unknown as MediaTrackConstraintSet] });
+      await track.applyConstraints({
+        advanced: [{ torch: !torchOn } as unknown as MediaTrackConstraintSet],
+      });
       setTorchOn((v) => !v);
     } catch {
       toast.info("Flaş açılamadı.");
@@ -245,7 +246,9 @@ function FeedCreatePage() {
         type: resultBlob.type || (photo ? "image/jpeg" : "video/webm"),
       });
       const uploaded = await uploadUserMedia(file, "social");
-      return createPostFn({ data: { kind: as, media_url: uploaded.url, media_type: uploaded.type } });
+      return createPostFn({
+        data: { kind: as, media_url: uploaded.url, media_type: uploaded.type },
+      });
     },
     onSuccess: () => {
       toast.success(as === "story" ? "Hikayen paylaşıldı." : "Gönderin paylaşıldı.");
@@ -433,7 +436,13 @@ function FeedCreatePage() {
                   className={`flex h-16 w-16 items-center justify-center rounded-full border-4 border-card ring-2 transition-colors ${
                     recording ? "bg-red-600 ring-red-600" : "bg-primary ring-primary"
                   }`}
-                  aria-label={mode === "canli" ? "Yayını başlat" : mode === "foto" ? "Fotoğraf çek" : "Kaydı başlat/durdur"}
+                  aria-label={
+                    mode === "canli"
+                      ? "Yayını başlat"
+                      : mode === "foto"
+                        ? "Fotoğraf çek"
+                        : "Kaydı başlat/durdur"
+                  }
                 >
                   {mode === "video" && recording ? (
                     <Square className="h-6 w-6 fill-white text-white" />

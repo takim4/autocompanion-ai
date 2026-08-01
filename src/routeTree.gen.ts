@@ -9,38 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedWhatsappHistoryRouteImport } from './routes/_authenticated/whatsapp-history'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated/quotes'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedMechanicPanelRouteImport } from './routes/_authenticated/mechanic-panel'
-import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedForumRouteImport } from './routes/_authenticated/forum'
-import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
-import { Route as AuthenticatedFactCheckRouteImport } from './routes/_authenticated/fact-check'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAdvertiseRouteImport } from './routes/_authenticated/advertise'
 import { Route as AuthenticatedAiChatRouteImport } from './routes/_authenticated/ai-chat'
+import { Route as AuthenticatedFactCheckRouteImport } from './routes/_authenticated/fact-check'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as AuthenticatedForumRouteImport } from './routes/_authenticated/forum'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedMechanicPanelRouteImport } from './routes/_authenticated/mechanic-panel'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedQuotesRouteImport } from './routes/_authenticated/quotes'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedWhatsappHistoryRouteImport } from './routes/_authenticated/whatsapp-history'
+import { Route as AuthenticatedFeedCreateRouteImport } from './routes/_authenticated/feed.create'
+import { Route as AuthenticatedForumPostIdRouteImport } from './routes/_authenticated/forum.$postId'
 import { Route as AuthenticatedGarageIndexRouteImport } from './routes/_authenticated/garage.index'
 import { Route as AuthenticatedGarageNewRouteImport } from './routes/_authenticated/garage.new'
+import { Route as AuthenticatedMechanicsIdRouteImport } from './routes/_authenticated/mechanics.$id'
+import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
 
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -48,34 +47,49 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedWhatsappHistoryRoute =
-  AuthenticatedWhatsappHistoryRouteImport.update({
-    id: '/whatsapp-history',
-    path: '/whatsapp-history',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdvertiseRoute = AuthenticatedAdvertiseRouteImport.update({
+  id: '/advertise',
+  path: '/advertise',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedQuotesRoute = AuthenticatedQuotesRouteImport.update({
-  id: '/quotes',
-  path: '/quotes',
+const AuthenticatedAiChatRoute = AuthenticatedAiChatRouteImport.update({
+  id: '/ai-chat',
+  path: '/ai-chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthenticatedFactCheckRoute = AuthenticatedFactCheckRouteImport.update({
+  id: '/fact-check',
+  path: '/fact-check',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedForumRoute = AuthenticatedForumRouteImport.update({
+  id: '/forum',
+  path: '/forum',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMechanicPanelRoute =
@@ -84,31 +98,38 @@ const AuthenticatedMechanicPanelRoute =
     path: '/mechanic-panel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedForumRoute = AuthenticatedForumRouteImport.update({
-  id: '/forum',
-  path: '/forum',
+const AuthenticatedQuotesRoute = AuthenticatedQuotesRouteImport.update({
+  id: '/quotes',
+  path: '/quotes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFactCheckRoute = AuthenticatedFactCheckRouteImport.update({
-  id: '/fact-check',
-  path: '/fact-check',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedWhatsappHistoryRoute =
+  AuthenticatedWhatsappHistoryRouteImport.update({
+    id: '/whatsapp-history',
+    path: '/whatsapp-history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFeedCreateRoute = AuthenticatedFeedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AuthenticatedFeedRoute,
 } as any)
-const AuthenticatedAiChatRoute = AuthenticatedAiChatRouteImport.update({
-  id: '/ai-chat',
-  path: '/ai-chat',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedForumPostIdRoute =
+  AuthenticatedForumPostIdRouteImport.update({
+    id: '/$postId',
+    path: '/$postId',
+    getParentRoute: () => AuthenticatedForumRoute,
+  } as any)
 const AuthenticatedGarageIndexRoute =
   AuthenticatedGarageIndexRouteImport.update({
     id: '/garage/',
@@ -120,6 +141,17 @@ const AuthenticatedGarageNewRoute = AuthenticatedGarageNewRouteImport.update({
   path: '/garage/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMechanicsIdRoute =
+  AuthenticatedMechanicsIdRouteImport.update({
+    id: '/mechanics/$id',
+    path: '/mechanics/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
+  id: '/u/$userId',
+  path: '/u/$userId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -127,17 +159,22 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/advertise': typeof AuthenticatedAdvertiseRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/fact-check': typeof AuthenticatedFactCheckRoute
-  '/feed': typeof AuthenticatedFeedRoute
-  '/forum': typeof AuthenticatedForumRoute
+  '/feed': typeof AuthenticatedFeedRouteWithChildren
+  '/forum': typeof AuthenticatedForumRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/feed/create': typeof AuthenticatedFeedCreateRoute
+  '/forum/$postId': typeof AuthenticatedForumPostIdRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
+  '/mechanics/$id': typeof AuthenticatedMechanicsIdRoute
+  '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/garage/': typeof AuthenticatedGarageIndexRoute
 }
 export interface FileRoutesByTo {
@@ -146,17 +183,22 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/advertise': typeof AuthenticatedAdvertiseRoute
   '/ai-chat': typeof AuthenticatedAiChatRoute
   '/fact-check': typeof AuthenticatedFactCheckRoute
-  '/feed': typeof AuthenticatedFeedRoute
-  '/forum': typeof AuthenticatedForumRoute
+  '/feed': typeof AuthenticatedFeedRouteWithChildren
+  '/forum': typeof AuthenticatedForumRouteWithChildren
   '/home': typeof AuthenticatedHomeRoute
   '/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/quotes': typeof AuthenticatedQuotesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/feed/create': typeof AuthenticatedFeedCreateRoute
+  '/forum/$postId': typeof AuthenticatedForumPostIdRoute
   '/garage/new': typeof AuthenticatedGarageNewRoute
+  '/mechanics/$id': typeof AuthenticatedMechanicsIdRoute
+  '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/garage': typeof AuthenticatedGarageIndexRoute
 }
 export interface FileRoutesById {
@@ -167,17 +209,22 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/advertise': typeof AuthenticatedAdvertiseRoute
   '/_authenticated/ai-chat': typeof AuthenticatedAiChatRoute
   '/_authenticated/fact-check': typeof AuthenticatedFactCheckRoute
-  '/_authenticated/feed': typeof AuthenticatedFeedRoute
-  '/_authenticated/forum': typeof AuthenticatedForumRoute
+  '/_authenticated/feed': typeof AuthenticatedFeedRouteWithChildren
+  '/_authenticated/forum': typeof AuthenticatedForumRouteWithChildren
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/mechanic-panel': typeof AuthenticatedMechanicPanelRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/quotes': typeof AuthenticatedQuotesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/whatsapp-history': typeof AuthenticatedWhatsappHistoryRoute
+  '/_authenticated/feed/create': typeof AuthenticatedFeedCreateRoute
+  '/_authenticated/forum/$postId': typeof AuthenticatedForumPostIdRoute
   '/_authenticated/garage/new': typeof AuthenticatedGarageNewRoute
+  '/_authenticated/mechanics/$id': typeof AuthenticatedMechanicsIdRoute
+  '/_authenticated/u/$userId': typeof AuthenticatedUUserIdRoute
   '/_authenticated/garage/': typeof AuthenticatedGarageIndexRoute
 }
 export interface FileRouteTypes {
@@ -188,6 +235,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/onboarding'
     | '/reset-password'
+    | '/advertise'
     | '/ai-chat'
     | '/fact-check'
     | '/feed'
@@ -198,7 +246,11 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/settings'
     | '/whatsapp-history'
+    | '/feed/create'
+    | '/forum/$postId'
     | '/garage/new'
+    | '/mechanics/$id'
+    | '/u/$userId'
     | '/garage/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,6 +259,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/onboarding'
     | '/reset-password'
+    | '/advertise'
     | '/ai-chat'
     | '/fact-check'
     | '/feed'
@@ -217,7 +270,11 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/settings'
     | '/whatsapp-history'
+    | '/feed/create'
+    | '/forum/$postId'
     | '/garage/new'
+    | '/mechanics/$id'
+    | '/u/$userId'
     | '/garage'
   id:
     | '__root__'
@@ -227,6 +284,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/onboarding'
     | '/reset-password'
+    | '/_authenticated/advertise'
     | '/_authenticated/ai-chat'
     | '/_authenticated/fact-check'
     | '/_authenticated/feed'
@@ -237,7 +295,11 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes'
     | '/_authenticated/settings'
     | '/_authenticated/whatsapp-history'
+    | '/_authenticated/feed/create'
+    | '/_authenticated/forum/$postId'
     | '/_authenticated/garage/new'
+    | '/_authenticated/mechanics/$id'
+    | '/_authenticated/u/$userId'
     | '/_authenticated/garage/'
   fileRoutesById: FileRoutesById
 }
@@ -252,32 +314,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -287,67 +328,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/whatsapp-history': {
-      id: '/_authenticated/whatsapp-history'
-      path: '/whatsapp-history'
-      fullPath: '/whatsapp-history'
-      preLoaderRoute: typeof AuthenticatedWhatsappHistoryRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/advertise': {
+      id: '/_authenticated/advertise'
+      path: '/advertise'
+      fullPath: '/advertise'
+      preLoaderRoute: typeof AuthenticatedAdvertiseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/quotes': {
-      id: '/_authenticated/quotes'
-      path: '/quotes'
-      fullPath: '/quotes'
-      preLoaderRoute: typeof AuthenticatedQuotesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/mechanic-panel': {
-      id: '/_authenticated/mechanic-panel'
-      path: '/mechanic-panel'
-      fullPath: '/mechanic-panel'
-      preLoaderRoute: typeof AuthenticatedMechanicPanelRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/home': {
-      id: '/_authenticated/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AuthenticatedHomeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/forum': {
-      id: '/_authenticated/forum'
-      path: '/forum'
-      fullPath: '/forum'
-      preLoaderRoute: typeof AuthenticatedForumRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/feed': {
-      id: '/_authenticated/feed'
-      path: '/feed'
-      fullPath: '/feed'
-      preLoaderRoute: typeof AuthenticatedFeedRouteImport
+    '/_authenticated/ai-chat': {
+      id: '/_authenticated/ai-chat'
+      path: '/ai-chat'
+      fullPath: '/ai-chat'
+      preLoaderRoute: typeof AuthenticatedAiChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/fact-check': {
@@ -357,12 +377,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFactCheckRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/ai-chat': {
-      id: '/_authenticated/ai-chat'
-      path: '/ai-chat'
-      fullPath: '/ai-chat'
-      preLoaderRoute: typeof AuthenticatedAiChatRouteImport
+    '/_authenticated/feed': {
+      id: '/_authenticated/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AuthenticatedFeedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/forum': {
+      id: '/_authenticated/forum'
+      path: '/forum'
+      fullPath: '/forum'
+      preLoaderRoute: typeof AuthenticatedForumRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mechanic-panel': {
+      id: '/_authenticated/mechanic-panel'
+      path: '/mechanic-panel'
+      fullPath: '/mechanic-panel'
+      preLoaderRoute: typeof AuthenticatedMechanicPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quotes': {
+      id: '/_authenticated/quotes'
+      path: '/quotes'
+      fullPath: '/quotes'
+      preLoaderRoute: typeof AuthenticatedQuotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/whatsapp-history': {
+      id: '/_authenticated/whatsapp-history'
+      path: '/whatsapp-history'
+      fullPath: '/whatsapp-history'
+      preLoaderRoute: typeof AuthenticatedWhatsappHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/feed/create': {
+      id: '/_authenticated/feed/create'
+      path: '/create'
+      fullPath: '/feed/create'
+      preLoaderRoute: typeof AuthenticatedFeedCreateRouteImport
+      parentRoute: typeof AuthenticatedFeedRoute
+    }
+    '/_authenticated/forum/$postId': {
+      id: '/_authenticated/forum/$postId'
+      path: '/$postId'
+      fullPath: '/forum/$postId'
+      preLoaderRoute: typeof AuthenticatedForumPostIdRouteImport
+      parentRoute: typeof AuthenticatedForumRoute
     }
     '/_authenticated/garage/': {
       id: '/_authenticated/garage/'
@@ -378,14 +461,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGarageNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mechanics/$id': {
+      id: '/_authenticated/mechanics/$id'
+      path: '/mechanics/$id'
+      fullPath: '/mechanics/$id'
+      preLoaderRoute: typeof AuthenticatedMechanicsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/u/$userId': {
+      id: '/_authenticated/u/$userId'
+      path: '/u/$userId'
+      fullPath: '/u/$userId'
+      preLoaderRoute: typeof AuthenticatedUUserIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedFeedRouteChildren {
+  AuthenticatedFeedCreateRoute: typeof AuthenticatedFeedCreateRoute
+}
+
+const AuthenticatedFeedRouteChildren: AuthenticatedFeedRouteChildren = {
+  AuthenticatedFeedCreateRoute: AuthenticatedFeedCreateRoute,
+}
+
+const AuthenticatedFeedRouteWithChildren =
+  AuthenticatedFeedRoute._addFileChildren(AuthenticatedFeedRouteChildren)
+
+interface AuthenticatedForumRouteChildren {
+  AuthenticatedForumPostIdRoute: typeof AuthenticatedForumPostIdRoute
+}
+
+const AuthenticatedForumRouteChildren: AuthenticatedForumRouteChildren = {
+  AuthenticatedForumPostIdRoute: AuthenticatedForumPostIdRoute,
+}
+
+const AuthenticatedForumRouteWithChildren =
+  AuthenticatedForumRoute._addFileChildren(AuthenticatedForumRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdvertiseRoute: typeof AuthenticatedAdvertiseRoute
   AuthenticatedAiChatRoute: typeof AuthenticatedAiChatRoute
   AuthenticatedFactCheckRoute: typeof AuthenticatedFactCheckRoute
-  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
-  AuthenticatedForumRoute: typeof AuthenticatedForumRoute
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRouteWithChildren
+  AuthenticatedForumRoute: typeof AuthenticatedForumRouteWithChildren
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMechanicPanelRoute: typeof AuthenticatedMechanicPanelRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -393,14 +513,17 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedWhatsappHistoryRoute: typeof AuthenticatedWhatsappHistoryRoute
   AuthenticatedGarageNewRoute: typeof AuthenticatedGarageNewRoute
+  AuthenticatedMechanicsIdRoute: typeof AuthenticatedMechanicsIdRoute
+  AuthenticatedUUserIdRoute: typeof AuthenticatedUUserIdRoute
   AuthenticatedGarageIndexRoute: typeof AuthenticatedGarageIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdvertiseRoute: AuthenticatedAdvertiseRoute,
   AuthenticatedAiChatRoute: AuthenticatedAiChatRoute,
   AuthenticatedFactCheckRoute: AuthenticatedFactCheckRoute,
-  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
-  AuthenticatedForumRoute: AuthenticatedForumRoute,
+  AuthenticatedFeedRoute: AuthenticatedFeedRouteWithChildren,
+  AuthenticatedForumRoute: AuthenticatedForumRouteWithChildren,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMechanicPanelRoute: AuthenticatedMechanicPanelRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
@@ -408,6 +531,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedWhatsappHistoryRoute: AuthenticatedWhatsappHistoryRoute,
   AuthenticatedGarageNewRoute: AuthenticatedGarageNewRoute,
+  AuthenticatedMechanicsIdRoute: AuthenticatedMechanicsIdRoute,
+  AuthenticatedUUserIdRoute: AuthenticatedUUserIdRoute,
   AuthenticatedGarageIndexRoute: AuthenticatedGarageIndexRoute,
 }
 

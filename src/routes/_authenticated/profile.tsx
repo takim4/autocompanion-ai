@@ -1,21 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
   Award,
   Car,
+  Check,
   ChevronRight,
   FileText,
   Loader2,
   MapPin,
+  Megaphone,
   MessageCircle,
   ShieldCheck,
   User,
   Wrench,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { LoadingState } from "@/components/data-state";
+import { listAllAdRequests, reviewAdRequest } from "@/lib/ads.functions";
 import { getMyProfile, listVehicles } from "@/lib/garage.functions";
 import { getMyRoles, importMechanicsFromGoogleMaps } from "@/lib/mechanics.functions";
 import { SPECIALTIES, SPECIALTY_LABELS, TR_CITIES, type Specialty } from "@/lib/mechanic-data";
@@ -92,9 +96,16 @@ function ProfilePage() {
           title="Usta Paneli"
           desc="Ustaysan işletme profilini yönet, teklifleri cevapla."
         />
+        <ProfileLink
+          to="/advertise"
+          icon={<Megaphone className="h-4 w-4" />}
+          title="Reklam Ver"
+          desc="İşletmeni AutoSocial kullanıcılarına tanıt."
+        />
       </div>
 
       {isAdmin && <AdminMechanicsImport />}
+      {isAdmin && <AdminAdRequests />}
     </div>
   );
 }
@@ -188,6 +199,101 @@ function AdminMechanicsImport() {
         {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         İçe aktar
       </button>
+    </div>
+  );
+}
+
+const AD_STATUS_LABEL: Record<string, { label: string; className: string }> = {
+  pending: { label: "Beklemede", className: "bg-amber-500/15 text-amber-600" },
+  approved: { label: "Onaylandı", className: "bg-green-500/15 text-green-600" },
+  rejected: { label: "Reddedildi", className: "bg-destructive/15 text-destructive" },
+};
+
+function AdminAdRequests() {
+  const qc = useQueryClient();
+  const fn = useServerFn(listAllAdRequests);
+  const q = useQuery({ queryKey: ["admin-ad-requests"], queryFn: () => fn() });
+
+  const reviewFn = useServerFn(reviewAdRequest);
+  const reviewMut = useMutation({
+    mutationFn: (input: { id: string; decision: "approve" | "reject" }) =>
+      reviewFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Karar kaydedildi.");
+      qc.invalidateQueries({ queryKey: ["admin-ad-requests"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="rounded-2xl border border-dashed border-border bg-card p-4">
+      <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+        <Megaphone className="h-4 w-4" /> Admin — Reklam Talepleri
+      </h2>
+      {q.isLoading && (
+        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yükleniyor…
+        </div>
+      )}
+      {q.data && q.data.length === 0 && (
+        <p className="mt-2 text-xs text-muted-foreground">Henüz reklam talebi yok.</p>
+      )}
+      <ul className="mt-3 space-y-2">
+        {(q.data ?? []).map(
+          (r: {
+            id: string;
+            ad_type: string;
+            business_name: string;
+            title: string;
+            description: string;
+            budget_try: number;
+            duration_days: number;
+            status: string;
+            contact_email: string;
+          }) => {
+            const s = AD_STATUS_LABEL[r.status] ?? AD_STATUS_LABEL.pending;
+            return (
+              <li key={r.id} className="rounded-lg border border-border bg-background p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">
+                      {r.business_name} <span className="text-muted-foreground">· {r.ad_type}</span>
+                    </p>
+                    <p className="text-xs">{r.title}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{r.description}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      ₺{r.budget_try} · {r.duration_days} gün · {r.contact_email}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.className}`}
+                  >
+                    {s.label}
+                  </span>
+                </div>
+                {r.status === "pending" && (
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => reviewMut.mutate({ id: r.id, decision: "approve" })}
+                      disabled={reviewMut.isPending}
+                      className="inline-flex items-center gap-1 rounded-md bg-green-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                    >
+                      <Check className="h-3.5 w-3.5" /> Onayla
+                    </button>
+                    <button
+                      onClick={() => reviewMut.mutate({ id: r.id, decision: "reject" })}
+                      disabled={reviewMut.isPending}
+                      className="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent disabled:opacity-50"
+                    >
+                      <X className="h-3.5 w-3.5" /> Reddet
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          },
+        )}
+      </ul>
     </div>
   );
 }

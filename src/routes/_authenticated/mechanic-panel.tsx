@@ -1,21 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Wrench, Send, MapPin, Phone } from "lucide-react";
+import {
+  ExternalLink,
+  Loader2,
+  MessageSquareText,
+  Star,
+  Wrench,
+  Send,
+  MapPin,
+  Phone,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   getMyMechanicProfile,
   listIncomingQuoteRequests,
+  listMechanicReviews,
   respondQuote,
   upsertMechanicProfile,
 } from "@/lib/mechanics.functions";
-import {
-  SPECIALTIES,
-  SPECIALTY_LABELS,
-  TR_CITIES,
-  type Specialty,
-} from "@/lib/mechanic-data";
+import { SPECIALTIES, SPECIALTY_LABELS, TR_CITIES, type Specialty } from "@/lib/mechanic-data";
 
 export const Route = createFileRoute("/_authenticated/mechanic-panel")({
   component: MechanicPanel,
@@ -34,20 +39,97 @@ function MechanicPanel() {
     );
   }
 
+  const p = q.data as { id: string; avg_rating: number; rating_count: number } | null;
+
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <Wrench className="h-6 w-6 text-primary" /> Usta Paneli
-        </h1>
-        <p className="text-xs text-muted-foreground">
-          İşletme profilini yönet ve gelen teklif isteklerini cevapla.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <Wrench className="h-6 w-6 text-primary" /> Usta Paneli
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            İşletme profilini yönet ve gelen teklif isteklerini cevapla.
+          </p>
+        </div>
+        {p && (
+          <div className="flex items-center gap-3">
+            {p.rating_count > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1.5 text-sm font-semibold text-accent-foreground">
+                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                {Number(p.avg_rating).toFixed(1)} ({p.rating_count})
+              </span>
+            )}
+            <Link
+              to="/mechanics/$id"
+              params={{ id: p.id }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> İşletme sayfamı gör
+            </Link>
+          </div>
+        )}
       </header>
 
       <ProfileEditor profile={q.data} />
       {q.data && <IncomingRequests />}
+      {p && <ReviewsReceived mechanicId={p.id} />}
     </div>
+  );
+}
+
+function ReviewsReceived({ mechanicId }: { mechanicId: string }) {
+  const fn = useServerFn(listMechanicReviews);
+  const q = useQuery({
+    queryKey: ["mechanic-reviews", mechanicId],
+    queryFn: () => fn({ data: { mechanic_id: mechanicId } }),
+  });
+
+  return (
+    <section>
+      <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
+        <MessageSquareText className="h-4 w-4" /> Gelen Değerlendirmeler
+      </h2>
+      {q.isLoading && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yükleniyor…
+        </div>
+      )}
+      {q.data && q.data.length === 0 && (
+        <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+          Henüz müşteri değerlendirmesi yok.
+        </div>
+      )}
+      <ul className="space-y-2">
+        {(q.data ?? []).map(
+          (r: {
+            id: string;
+            author_name: string;
+            rating: number;
+            comment: string | null;
+            created_at: string;
+          }) => (
+            <li key={r.id} className="rounded-lg border border-border bg-card p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold">{r.author_name}</span>
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star
+                      key={n}
+                      className={`h-3.5 w-3.5 ${n <= r.rating ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground/30"}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              {r.comment && <p className="mt-1 text-sm">{r.comment}</p>}
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                {new Date(r.created_at).toLocaleDateString("tr-TR")}
+              </p>
+            </li>
+          ),
+        )}
+      </ul>
+    </section>
   );
 }
 
@@ -144,11 +226,33 @@ function ProfileEditor({ profile }: { profile: unknown }) {
     <section className="rounded-lg border border-border bg-card p-4">
       <h2 className="mb-3 text-sm font-semibold">İşletme Profili</h2>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <Input label="İşletme adı *" value={form.business_name} onChange={(v) => setForm({ ...form, business_name: v })} />
-        <Input label="Sahibinin adı" value={form.owner_name} onChange={(v) => setForm({ ...form, owner_name: v })} />
-        <Input label="Telefon *" value={form.phone} placeholder="+90 555 000 00 00" onChange={(v) => setForm({ ...form, phone: v })} />
-        <Input label="WhatsApp" value={form.whatsapp} placeholder="+90 555 000 00 00" onChange={(v) => setForm({ ...form, whatsapp: v })} />
-        <Input label="E-posta" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+        <Input
+          label="İşletme adı *"
+          value={form.business_name}
+          onChange={(v) => setForm({ ...form, business_name: v })}
+        />
+        <Input
+          label="Sahibinin adı"
+          value={form.owner_name}
+          onChange={(v) => setForm({ ...form, owner_name: v })}
+        />
+        <Input
+          label="Telefon *"
+          value={form.phone}
+          placeholder="+90 555 000 00 00"
+          onChange={(v) => setForm({ ...form, phone: v })}
+        />
+        <Input
+          label="WhatsApp"
+          value={form.whatsapp}
+          placeholder="+90 555 000 00 00"
+          onChange={(v) => setForm({ ...form, whatsapp: v })}
+        />
+        <Input
+          label="E-posta"
+          value={form.email}
+          onChange={(v) => setForm({ ...form, email: v })}
+        />
         <div>
           <label className="mb-1 block text-xs font-medium">Şehir *</label>
           <select
@@ -158,13 +262,23 @@ function ProfileEditor({ profile }: { profile: unknown }) {
           >
             <option value="">Şehir seç…</option>
             {TR_CITIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </div>
-        <Input label="İlçe" value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
+        <Input
+          label="İlçe"
+          value={form.district}
+          onChange={(v) => setForm({ ...form, district: v })}
+        />
         <div className="md:col-span-2">
-          <Input label="Adres *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
+          <Input
+            label="Adres *"
+            value={form.address}
+            onChange={(v) => setForm({ ...form, address: v })}
+          />
         </div>
         <div className="md:col-span-2 flex items-center gap-2">
           <button
@@ -335,7 +449,11 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
   });
 
   const vehicle = req.vehicle as { brand: string; model: string; year: number } | null;
-  const responses = (req.responses ?? []) as Array<{ id: string; price_min: number | null; price_max: number | null }>;
+  const responses = (req.responses ?? []) as Array<{
+    id: string;
+    price_min: number | null;
+    price_max: number | null;
+  }>;
   const already = responses.length > 0;
   const contact = req.preferred_contact as string;
 
@@ -360,7 +478,9 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
       {req.diagnosis_snapshot ? (
         <details className="mt-2 rounded bg-muted/40 p-2 text-[11px]">
           <summary className="cursor-pointer font-medium">AI teşhis özeti</summary>
-          <pre className="mt-1 whitespace-pre-wrap font-sans">{req.diagnosis_snapshot as string}</pre>
+          <pre className="mt-1 whitespace-pre-wrap font-sans">
+            {req.diagnosis_snapshot as string}
+          </pre>
         </details>
       ) : null}
 

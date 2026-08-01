@@ -2,15 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-// `context.supabase` is typed against the generated Database schema, which this
-// sandbox can't regenerate after adding new tables via migration (no linked
-// Supabase CLI / service-role DB access here). Same bypass already used in
-// mechanics.functions.ts for its anon-key clients — cast to an untyped client
-// so `.from("forum_posts")` etc. type-check; RLS still enforces access at runtime.
-function db(client: SupabaseClient<any>): SupabaseClient {
-  return client as unknown as SupabaseClient;
-}
+import { db } from "@/lib/untyped-supabase";
 
 async function authorSnapshot(client: SupabaseClient, userId: string) {
   const { data } = await client
@@ -45,33 +37,45 @@ export const listForumPosts = createServerFn({ method: "GET" })
     ]);
     if (error) throw new Error(error.message);
     const likedIds = new Set((liked ?? []).map((r: { post_id: string }) => r.post_id));
-    return (posts ?? []).map((p: Record<string, unknown>) => ({ ...p, liked_by_me: likedIds.has(p.id as string) }));
+    return (posts ?? []).map((p: Record<string, unknown>) => ({
+      ...p,
+      liked_by_me: likedIds.has(p.id as string),
+    }));
   });
 
 export const getForumPost = createServerFn({ method: "GET" })
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
-    const [{ data: post, error }, { data: comments, error: cErr }, { data: likedPost }, { data: likedComments }] =
-      await Promise.all([
-        db(context.supabase).from("forum_posts").select("*").eq("id", data.id).maybeSingle(),
-        db(context.supabase)
-          .from("forum_comments")
-          .select("*")
-          .eq("post_id", data.id)
-          .order("created_at", { ascending: true }),
-        db(context.supabase)
-          .from("forum_post_likes")
-          .select("post_id")
-          .eq("user_id", context.userId)
-          .eq("post_id", data.id)
-          .maybeSingle(),
-        db(context.supabase).from("forum_comment_likes").select("comment_id").eq("user_id", context.userId),
-      ]);
+    const [
+      { data: post, error },
+      { data: comments, error: cErr },
+      { data: likedPost },
+      { data: likedComments },
+    ] = await Promise.all([
+      db(context.supabase).from("forum_posts").select("*").eq("id", data.id).maybeSingle(),
+      db(context.supabase)
+        .from("forum_comments")
+        .select("*")
+        .eq("post_id", data.id)
+        .order("created_at", { ascending: true }),
+      db(context.supabase)
+        .from("forum_post_likes")
+        .select("post_id")
+        .eq("user_id", context.userId)
+        .eq("post_id", data.id)
+        .maybeSingle(),
+      db(context.supabase)
+        .from("forum_comment_likes")
+        .select("comment_id")
+        .eq("user_id", context.userId),
+    ]);
     if (error) throw new Error(error.message);
     if (cErr) throw new Error(cErr.message);
     if (!post) return null;
-    const likedCommentIds = new Set((likedComments ?? []).map((r: { comment_id: string }) => r.comment_id));
+    const likedCommentIds = new Set(
+      (likedComments ?? []).map((r: { comment_id: string }) => r.comment_id),
+    );
     return {
       ...post,
       liked_by_me: !!likedPost,
@@ -197,6 +201,20 @@ export const toggleFollow = createServerFn({ method: "POST" })
     return { following: true };
   });
 
+export const listPostsByUser = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ user_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: posts, error } = await db(context.supabase)
+      .from("forum_posts")
+      .select("id, title, like_count, comment_count, created_at")
+      .eq("user_id", data.user_id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return posts ?? [];
+  });
+
 export const listFollowCandidates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -211,9 +229,21 @@ export const listFollowCandidates = createServerFn({ method: "GET" })
       client.from("user_follows").select("followee_id").eq("follower_id", context.userId),
     ]);
     if (error) throw new Error(error.message);
-    const followingIds = new Set((following ?? []).map((r: { followee_id: string }) => r.followee_id));
-    return (profiles ?? []).map((p: Record<string, unknown>) => ({
-      ...p,
-      is_following: followingIds.has(p.id as string),
-    }));
+    const followingIds = new Set(
+      (following ?? []).map((r: { followee_id: string }) => r.followee_id),
+    );
+    return (profiles ?? []).map(
+      (p: {
+        id: string;
+        username: string | null;
+        display_name: string | null;
+        avatar_url: string | null;
+      }) => ({
+        id: p.id,
+        username: p.username,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+        is_following: followingIds.has(p.id),
+      }),
+    );
   });

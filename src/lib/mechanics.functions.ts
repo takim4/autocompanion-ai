@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { db } from "@/lib/untyped-supabase";
 import { SPECIALTIES, TR_CITIES, type Specialty } from "./mechanic-data";
 
 const CoordSchema = z
@@ -111,13 +112,18 @@ function sortMechanicsByDistance(rows: MechanicSearchRow[], data: z.infer<typeof
 }
 
 function hasEnoughLocalMechanics(rows: Array<{ distance_km: number | null }>, limit: number) {
-  const nearby = rows.filter((r) => r.distance_km != null && r.distance_km <= LIVE_SEARCH_RADIUS_KM);
+  const nearby = rows.filter(
+    (r) => r.distance_km != null && r.distance_km <= LIVE_SEARCH_RADIUS_KM,
+  );
   return nearby.length >= Math.min(LIVE_SEARCH_MIN_RESULTS, limit);
 }
 
 function buildLiveSearchQueries(specialties?: Specialty[]) {
-  const selected = specialties && specialties.length > 0 ? specialties : (["genel bakım"] as Specialty[]);
-  return Array.from(new Set(selected.slice(0, 2).map((s) => LIVE_SEARCH_TERMS[s] ?? "oto tamirci")));
+  const selected =
+    specialties && specialties.length > 0 ? specialties : (["genel bakım"] as Specialty[]);
+  return Array.from(
+    new Set(selected.slice(0, 2).map((s) => LIVE_SEARCH_TERMS[s] ?? "oto tamirci")),
+  );
 }
 
 export const listNearbyMechanics = createServerFn({ method: "POST" })
@@ -149,26 +155,22 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
     const poolLimit = hasCoords ? Math.max(data.limit * 20, 500) : data.limit;
 
     // Konum varsa DB'den yalnızca kullanıcının çevresindeki coğrafi kutuyu çek.
-    const bbox =
-      hasCoords
-        ? (() => {
-            const latDelta = NEARBY_MAX_KM / 111;
-            const lngDelta = NEARBY_MAX_KM / (111 * Math.max(0.2, Math.cos((data.lat! * Math.PI) / 180)));
-            return {
-              minLat: data.lat! - latDelta,
-              maxLat: data.lat! + latDelta,
-              minLng: data.lng! - lngDelta,
-              maxLng: data.lng! + lngDelta,
-            };
-          })()
-        : null;
+    const bbox = hasCoords
+      ? (() => {
+          const latDelta = NEARBY_MAX_KM / 111;
+          const lngDelta =
+            NEARBY_MAX_KM / (111 * Math.max(0.2, Math.cos((data.lat! * Math.PI) / 180)));
+          return {
+            minLat: data.lat! - latDelta,
+            maxLat: data.lat! + latDelta,
+            minLng: data.lng! - lngDelta,
+            maxLng: data.lng! + lngDelta,
+          };
+        })()
+      : null;
 
     const fetchRows = async (db: any) => {
-      let q = db
-        .from("mechanics")
-        .select(MECHANIC_SELECT)
-        .eq("verified", true)
-        .eq("active", true);
+      let q = db.from("mechanics").select(MECHANIC_SELECT).eq("verified", true).eq("active", true);
 
       if (bbox) {
         q = q
@@ -210,7 +212,6 @@ export const listNearbyMechanics = createServerFn({ method: "POST" })
       .filter((r) => (r.distance_km as number) <= NEARBY_MAX_KM)
       .slice(0, data.limit);
   });
-
 
 const LiveImportInput = z
   .object({
@@ -303,7 +304,6 @@ export const importNearbyMechanicsFromGoogleMaps = createServerFn({ method: "POS
 
     return { imported: importedRows.length, cached: false };
   });
-
 
 export const getMechanic = createServerFn({ method: "GET" })
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
@@ -406,7 +406,9 @@ export const createQuoteRequest = createServerFn({ method: "POST" })
       .single();
     if (error) {
       if (error.code === "23514" || /son 24 saatte/i.test(error.message)) {
-        throw new Error("Bu ustaya son 24 saatte zaten teklif isteği gönderdin. Cevabını beklerken başka bir ustayı da deneyebilirsin.");
+        throw new Error(
+          "Bu ustaya son 24 saatte zaten teklif isteği gönderdin. Cevabını beklerken başka bir ustayı da deneyebilirsin.",
+        );
       }
       throw new Error(error.message);
     }
@@ -493,6 +495,98 @@ export const respondQuote = createServerFn({ method: "POST" })
     return row;
   });
 
+const ReviewInput = z.object({
+  mechanic_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(2000).optional(),
+});
+
+export const listMechanicReviews = createServerFn({ method: "GET" })
+  .inputValidator((i: unknown) => z.object({ mechanic_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data }) => {
+    // Anon-safe okuma — mechanic_reviews_select_all herkese açık (mechanics
+    // tablosundaki iş modeliyle aynı: Google yorumları gibi herkese görünür).
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+    const url = process.env.SUPABASE_URL!;
+    const { createClient } = await import("@supabase/supabase-js");
+    const client = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+    const { data: rows, error } = await client
+      .from("mechanic_reviews")
+      .select("id, rating, comment, author_name, author_avatar, created_at")
+      .eq("mechanic_id", data.mechanic_id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const getMyMechanicReview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ mechanic_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await db(context.supabase)
+      .from("mechanic_reviews")
+      .select("id, rating, comment")
+      .eq("mechanic_id", data.mechanic_id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const upsertMechanicReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ReviewInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const { data: prof } = await context.supabase
+      .from("profiles")
+      .select("display_name, username, avatar_url")
+      .eq("id", context.userId)
+      .maybeSingle();
+    const { data: row, error } = await db(context.supabase)
+      .from("mechanic_reviews")
+      .upsert(
+        {
+          mechanic_id: data.mechanic_id,
+          user_id: context.userId,
+          rating: data.rating,
+          comment: data.comment || null,
+          author_name: prof?.display_name || prof?.username || "Kullanıcı",
+          author_avatar: prof?.avatar_url || null,
+        },
+        { onConflict: "mechanic_id,user_id" },
+      )
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const deleteMechanicReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ mechanic_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { error } = await db(context.supabase)
+      .from("mechanic_reviews")
+      .delete()
+      .eq("mechanic_id", data.mechanic_id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getMyRoles = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -541,9 +635,7 @@ export const importMechanicsFromGoogleMaps = createServerFn({ method: "POST" })
         }).catch(() => []),
       ),
     );
-    const rows = Array.from(
-      new Map(perCity.flat().map((r) => [r.external_id, r])).values(),
-    );
+    const rows = Array.from(new Map(perCity.flat().map((r) => [r.external_id, r])).values());
     if (rows.length === 0) return { imported: 0 };
 
     const { error } = await supabaseAdmin.from("mechanics").upsert(

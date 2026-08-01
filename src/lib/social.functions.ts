@@ -2,12 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-// Bkz. forum.functions.ts — types.ts bu ortamda regenerate edilemediği için
-// yeni tablolar (`social_posts` vb.) untyped client üzerinden okunuyor/yazılıyor.
-function db(client: SupabaseClient<any>): SupabaseClient {
-  return client as unknown as SupabaseClient;
-}
+import { db } from "@/lib/untyped-supabase";
 
 async function authorSnapshot(client: SupabaseClient, userId: string) {
   const { data } = await client
@@ -21,8 +16,8 @@ async function authorSnapshot(client: SupabaseClient, userId: string) {
   };
 }
 
-async function withLikedByMe(client: SupabaseClient, userId: string, rows: Array<Record<string, unknown>>) {
-  if (rows.length === 0) return rows;
+async function withLikedByMe(client: SupabaseClient, userId: string, rows: any[]) {
+  if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id as string);
   const { data: liked } = await db(client)
     .from("social_post_likes")
@@ -73,7 +68,8 @@ export const createSocialPost = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => CreatePostInput.parse(i))
   .handler(async ({ data, context }) => {
     const author = await authorSnapshot(context.supabase, context.userId);
-    const expires_at = data.kind === "story" ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
+    const expires_at =
+      data.kind === "story" ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
     const { data: row, error } = await db(context.supabase)
       .from("social_posts")
       .insert({ ...data, ...author, user_id: context.userId, source: "user", expires_at })

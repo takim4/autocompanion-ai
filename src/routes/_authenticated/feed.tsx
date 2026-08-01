@@ -28,8 +28,7 @@ export const Route = createFileRoute("/_authenticated/feed")({
       { title: "Akış — AutoSocial" },
       {
         name: "description",
-        content:
-          "Otomobil severlerin hikayeleri, reels videoları ve canlı yayınları tek akışta.",
+        content: "Otomobil severlerin hikayeleri, reels videoları ve canlı yayınları tek akışta.",
       },
       { property: "og:title", content: "AutoSocial Akış" },
       {
@@ -44,6 +43,7 @@ type Tab = "reels" | "stories" | "live" | "profiles";
 
 type ReelRow = {
   id: string;
+  user_id: string | null;
   author_name: string;
   author_avatar: string;
   media_url: string;
@@ -57,6 +57,7 @@ type ReelRow = {
 
 type StoryRow = {
   id: string;
+  user_id: string | null;
   author_name: string;
   author_avatar: string;
   media_url: string;
@@ -208,7 +209,11 @@ function FeedPage() {
                   u.is_following ? "bg-primary/15 ring-primary" : "bg-muted ring-transparent"
                 }`}
               >
-                {u.avatar_url ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" /> : "🙂"}
+                {u.avatar_url ? (
+                  <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  "🙂"
+                )}
               </span>
               <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
                 {u.username ?? u.display_name ?? "kullanıcı"}
@@ -235,7 +240,9 @@ function FeedPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-medium transition-colors ${
-                active ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
+                active
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -293,7 +300,11 @@ function FeedPage() {
                         u.is_following ? "bg-primary/15" : "bg-muted"
                       }`}
                     >
-                      {u.avatar_url ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" /> : "🙂"}
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        "🙂"
+                      )}
                     </span>
                     <span className="min-w-0 flex-1 truncate">
                       {u.username ?? u.display_name ?? "kullanıcı"}
@@ -319,7 +330,10 @@ function FeedPage() {
 
 function StoryViewer({ story, onClose }: { story: StoryRow; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      onClick={onClose}
+    >
       <button
         onClick={onClose}
         className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
@@ -336,7 +350,18 @@ function StoryViewer({ story, onClose }: { story: StoryRow; onClose: () => void 
           backgroundPosition: "center",
         }}
       >
-        <p className="text-lg font-semibold text-white drop-shadow">@{story.author_name}</p>
+        {story.user_id ? (
+          <Link
+            to="/u/$userId"
+            params={{ userId: story.user_id }}
+            onClick={(e) => e.stopPropagation()}
+            className="text-lg font-semibold text-white drop-shadow hover:underline"
+          >
+            @{story.author_name}
+          </Link>
+        ) : (
+          <p className="text-lg font-semibold text-white drop-shadow">@{story.author_name}</p>
+        )}
       </div>
     </div>
   );
@@ -371,7 +396,13 @@ function ReelsGrid({ reels }: { reels: ReelRow[] }) {
       await qc.cancelQueries({ queryKey: ["reels"] });
       qc.setQueryData<ReelRow[]>(["reels"], (old) =>
         (old ?? []).map((r) =>
-          r.id === post_id ? { ...r, liked_by_me: !r.liked_by_me, like_count: r.like_count + (r.liked_by_me ? -1 : 1) } : r,
+          r.id === post_id
+            ? {
+                ...r,
+                liked_by_me: !r.liked_by_me,
+                like_count: r.like_count + (r.liked_by_me ? -1 : 1),
+              }
+            : r,
         ),
       );
     },
@@ -409,7 +440,14 @@ function ReelCard({ r, onLike }: { r: ReelRow; onLike: (id: string) => void }) {
   return (
     <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-xl bg-black">
       {r.media_type === "video" ? (
-        <video src={r.media_url} className="h-full w-full object-cover" muted loop playsInline autoPlay />
+        <video
+          src={r.media_url}
+          className="h-full w-full object-cover"
+          muted
+          loop
+          playsInline
+          autoPlay
+        />
       ) : (
         <img src={r.media_url} alt="" className="h-full w-full object-cover" />
       )}
@@ -422,14 +460,25 @@ function ReelCard({ r, onLike }: { r: ReelRow; onLike: (id: string) => void }) {
         </span>
       )}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-        <p className="text-xs font-semibold text-white">{r.author_name}</p>
+        {r.user_id ? (
+          <Link
+            to="/u/$userId"
+            params={{ userId: r.user_id }}
+            className="relative z-10 text-xs font-semibold text-white hover:underline"
+          >
+            {r.author_name}
+          </Link>
+        ) : (
+          <p className="text-xs font-semibold text-white">{r.author_name}</p>
+        )}
         {r.caption && <p className="mt-0.5 line-clamp-2 text-[11px] text-white/90">{r.caption}</p>}
         <div className="mt-2 flex gap-3 text-[11px] text-white/90">
           <button
             onClick={() => onLike(r.id)}
             className={`flex items-center gap-1 ${r.liked_by_me ? "text-accent" : ""}`}
           >
-            <Heart className={`h-3 w-3 ${r.liked_by_me ? "fill-current" : ""}`} /> {formatK(r.like_count)}
+            <Heart className={`h-3 w-3 ${r.liked_by_me ? "fill-current" : ""}`} />{" "}
+            {formatK(r.like_count)}
           </button>
           <span className="flex items-center gap-1">
             <MessageCircle className="h-3 w-3" /> {r.comment_count}
@@ -453,9 +502,7 @@ function StoriesGrid({
   seenStories: Set<string>;
 }) {
   if (stories.length === 0) {
-    return (
-      <p className="py-10 text-center text-sm text-muted-foreground">Henüz hikaye yok.</p>
-    );
+    return <p className="py-10 text-center text-sm text-muted-foreground">Henüz hikaye yok.</p>;
   }
   return (
     <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -537,14 +584,31 @@ function ProfilesGrid({
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {candidates.map((p) => (
-        <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-accent text-2xl">
-            {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-full w-full object-cover" /> : "🙂"}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{p.display_name ?? p.username ?? "Kullanıcı"}</p>
-            {p.username && <p className="truncate text-xs text-muted-foreground">@{p.username}</p>}
-          </div>
+        <div
+          key={p.id}
+          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+        >
+          <Link
+            to="/u/$userId"
+            params={{ userId: p.id }}
+            className="flex min-w-0 flex-1 items-center gap-3"
+          >
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-accent text-2xl">
+              {p.avatar_url ? (
+                <img src={p.avatar_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                "🙂"
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">
+                {p.display_name ?? p.username ?? "Kullanıcı"}
+              </p>
+              {p.username && (
+                <p className="truncate text-xs text-muted-foreground">@{p.username}</p>
+              )}
+            </div>
+          </Link>
           <Button
             size="sm"
             variant={p.is_following ? "secondary" : "outline"}
