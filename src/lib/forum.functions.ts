@@ -215,6 +215,13 @@ export const listPostsByUser = createServerFn({ method: "GET" })
     return posts ?? [];
   });
 
+type FollowCandidate = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
 export const listFollowCandidates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -232,18 +239,11 @@ export const listFollowCandidates = createServerFn({ method: "GET" })
     const followingIds = new Set(
       (following ?? []).map((r: { followee_id: string }) => r.followee_id),
     );
-    return (profiles ?? []).map(
-      (p: {
-        id: string;
-        username: string | null;
-        display_name: string | null;
-        avatar_url: string | null;
-      }) => ({
-        id: p.id,
-        username: p.username,
-        display_name: p.display_name,
-        avatar_url: p.avatar_url,
-        is_following: followingIds.has(p.id),
-      }),
-    );
+    return ((profiles ?? []) as FollowCandidate[]).map((p) => ({
+      id: p.id,
+      username: p.username ?? null,
+      display_name: p.display_name ?? null,
+      avatar_url: p.avatar_url ?? null,
+      is_following: followingIds.has(p.id),
+    }));
   });
