@@ -197,6 +197,13 @@ export const toggleFollow = createServerFn({ method: "POST" })
     return { following: true };
   });
 
+type FollowCandidate = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
 export const listFollowCandidates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -212,8 +219,11 @@ export const listFollowCandidates = createServerFn({ method: "GET" })
     ]);
     if (error) throw new Error(error.message);
     const followingIds = new Set((following ?? []).map((r: { followee_id: string }) => r.followee_id));
-    return (profiles ?? []).map((p: Record<string, unknown>) => ({
-      ...p,
-      is_following: followingIds.has(p.id as string),
+    return ((profiles ?? []) as FollowCandidate[]).map((p) => ({
+      id: p.id,
+      username: p.username ?? null,
+      display_name: p.display_name ?? null,
+      avatar_url: p.avatar_url ?? null,
+      is_following: followingIds.has(p.id),
     }));
   });
