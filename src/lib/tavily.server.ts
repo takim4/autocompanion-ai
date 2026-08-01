@@ -137,19 +137,22 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
   }
 }
 
+/**
+ * Nominatim kullanım politikası saniyede en fazla 1 istek ve eşzamansız (sıralı)
+ * çağrı gerektirir — önceki sürüm 3'erli paralel batch gönderiyordu, bu da
+ * limitlemeye takılıp geokodlamanın sessizce başarısız olmasına (ve dolayısıyla
+ * yanlış/eksik mesafe hesabına) yol açabiliyordu.
+ */
 async function geocodeAll(rows: ImportedMechanic[]): Promise<void> {
-  const limit = Math.min(rows.length, 25);
-  for (let i = 0; i < limit; i += 3) {
-    const batch = rows.slice(i, i + 3);
-    await Promise.all(
-      batch.map(async (r) => {
-        const point = await geocode(`${r.address}, ${r.city}, Türkiye`);
-        if (point) {
-          r.lat = point.lat;
-          r.lng = point.lng;
-        }
-      }),
-    );
+  const limit = Math.min(rows.length, 20);
+  for (let i = 0; i < limit; i++) {
+    const r = rows[i];
+    const point = await geocode(`${r.address}, ${r.city}, Türkiye`);
+    if (point) {
+      r.lat = point.lat;
+      r.lng = point.lng;
+    }
+    if (i < limit - 1) await new Promise((resolve) => setTimeout(resolve, 1100));
   }
 }
 
