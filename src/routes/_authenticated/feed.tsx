@@ -177,6 +177,20 @@ function FeedPage() {
         </Button>
       </div>
 
+      {/* Takip Edilenler — mobilde yatay şerit, md+ ekranda sağ panelde */}
+      <div className="flex gap-3 overflow-x-auto border-b border-border px-4 py-3 md:hidden">
+        {FOLLOWED_USERS.map((u) => (
+          <button key={u.id} className="flex shrink-0 flex-col items-center gap-1">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-lg">
+              {u.avatar}
+            </span>
+            <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
+              {u.user}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Tabs */}
       <div className="sticky top-0 z-10 flex border-b border-border bg-background/95 backdrop-blur">
         {(

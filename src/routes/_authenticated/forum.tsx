@@ -45,6 +45,20 @@ function ForumPage() {
           />
         </div>
 
+        {/* Takip Edilenler — mobilde yatay şerit, md+ ekranda sağ panelde */}
+        <div className="-mb-1 flex gap-3 overflow-x-auto pb-1 md:hidden">
+          {FOLLOWED_USERS.map((u) => (
+            <button key={u.id} className="flex shrink-0 flex-col items-center gap-1">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-lg">
+                {u.avatar}
+              </span>
+              <span className="max-w-[56px] truncate text-[10px] text-muted-foreground">
+                {u.user}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {/* Popüler / Trend Konular */}
         <section>
           <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

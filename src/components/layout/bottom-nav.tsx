@@ -1,19 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { MessageSquare, Users, User, Video } from "lucide-react";
-
-const items = [
-  { to: "/forum", label: "Forum", icon: Users },
-  { to: "/feed", label: "Sosyal Medya", icon: Video },
-  { to: "/ai-chat", label: "AI", icon: MessageSquare },
-  { to: "/profile", label: "Hesap", icon: User },
-] as const;
+import { NAV_ITEMS } from "@/components/layout/nav-items";
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav className="sticky bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur md:hidden">
       <ul className="flex items-center justify-around">
-        {items.map((it) => {
+        {NAV_ITEMS.map((it) => {
           const active =
             pathname === it.to || pathname.startsWith(it.to + "/");
           const Icon = it.icon;
