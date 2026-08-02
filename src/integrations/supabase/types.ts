@@ -508,6 +508,50 @@ export type Database = {
         }
         Relationships: []
       }
+      mechanic_reviews: {
+        Row: {
+          author_avatar: string | null
+          author_name: string
+          comment: string | null
+          created_at: string
+          id: string
+          mechanic_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_avatar?: string | null
+          author_name?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          mechanic_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_avatar?: string | null
+          author_name?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          mechanic_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mechanic_reviews_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mechanic_scrape_log: {
         Row: {
           cell_key: string
