@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_requests: {
+        Row: {
+          ad_type: string
+          admin_note: string | null
+          advertiser_id: string
+          budget_try: number
+          business_name: string
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          cta_label: string
+          description: string
+          duration_days: number
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          starts_at: string | null
+          status: string
+          target_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ad_type: string
+          admin_note?: string | null
+          advertiser_id: string
+          budget_try?: number
+          business_name: string
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          cta_label?: string
+          description: string
+          duration_days?: number
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          starts_at?: string | null
+          status?: string
+          target_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ad_type?: string
+          admin_note?: string | null
+          advertiser_id?: string
+          budget_try?: number
+          business_name?: string
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          cta_label?: string
+          description?: string
+          duration_days?: number
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          starts_at?: string | null
+          status?: string
+          target_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           created_at: string
