@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.profile_rating_sync() FROM PUBLIC, anon, authenticated;

@@ -710,36 +710,77 @@ export type Database = {
           },
         ]
       }
+      profile_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          rater_id: string
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          rater_id: string
+          rating: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          rater_id?: string
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_ratings_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          avg_rating: number
           bio: string | null
           created_at: string
           display_name: string | null
           id: string
           onboarding_completed: boolean
+          rating_count: number
           reputation: number
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          avg_rating?: number
           bio?: string | null
           created_at?: string
           display_name?: string | null
           id: string
           onboarding_completed?: boolean
+          rating_count?: number
           reputation?: number
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          avg_rating?: number
           bio?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           onboarding_completed?: boolean
+          rating_count?: number
           reputation?: number
           updated_at?: string
           username?: string | null
