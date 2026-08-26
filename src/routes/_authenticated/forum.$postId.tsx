@@ -69,7 +69,7 @@ function ForumPostPage() {
     <div className="mx-auto max-w-2xl space-y-4">
       <Link
         to="/forum"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" /> Foruma dön
       </Link>
@@ -202,7 +202,7 @@ function ForumPostPage() {
           <button
             type="submit"
             disabled={!comment.trim() || commentMut.isPending}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
             aria-label="Gönder"
           >
             {commentMut.isPending ? (

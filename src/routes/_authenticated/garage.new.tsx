@@ -112,7 +112,7 @@ function NewVehiclePage() {
           <div
             key={i}
             className={`h-1.5 flex-1 rounded-full transition ${
-              i <= step ? "bg-primary" : "bg-muted"
+              i <= step ? "bg-brand-gradient" : "bg-muted"
             }`}
           />
         ))}
@@ -291,13 +291,14 @@ function NewVehiclePage() {
       <div className="sticky bottom-20 md:bottom-4 z-10 mt-5 flex justify-end rounded-xl border border-border bg-background/95 p-3 backdrop-blur">
         {step < 4 ? (
           <Button
+            variant="brand"
             disabled={!canNext}
             onClick={() => setStep((s) => (s + 1) as Step)}
           >
             Devam <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         ) : (
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+          <Button variant="brand" onClick={() => mut.mutate()} disabled={mut.isPending}>
             {mut.isPending ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
             ) : (

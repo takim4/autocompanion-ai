@@ -18,17 +18,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="node-orbit-bg flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">Sayfa bulunamadı</h2>
+        <h1 className="text-gradient-brand font-display text-7xl font-extrabold">404</h1>
+        <h2 className="mt-4 font-display text-xl font-semibold">Sayfa bulunamadı</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Aradığınız sayfa mevcut değil veya taşınmış olabilir.
         </p>
         <div className="mt-6">
           <Link
             to="/forum"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-xl bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-8px_hsl(var(--shadow-color)/0.6)] hover:brightness-110"
           >
             Ana sayfaya dön
           </Link>
@@ -58,13 +58,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-xl bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_-8px_hsl(var(--shadow-color)/0.6)] hover:brightness-110"
           >
             Tekrar dene
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+            className="inline-flex items-center justify-center rounded-xl border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent/10"
           >
             Ana sayfa
           </a>
@@ -87,7 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "AutoSocial" },
-      { name: "theme-color", content: "#1E232B" },
+      { name: "theme-color", content: "#090E1A" },
       {
         name: "description",
         content:
@@ -111,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap",
       },
     ],
   }),

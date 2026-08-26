@@ -389,7 +389,7 @@ function FeedCreatePage() {
               <button
                 onClick={() => publishMut.mutate()}
                 disabled={publishMut.isPending}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-full bg-brand-gradient px-4 py-2 text-xs font-semibold text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
               >
                 {publishMut.isPending ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />

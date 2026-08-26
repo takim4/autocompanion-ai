@@ -218,7 +218,7 @@ export function MechanicSuggestions({
             <button
               onClick={() => requestLocation(false)}
               disabled={askingLocation}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
             >
               {askingLocation ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -396,7 +396,7 @@ function MechanicCard({
         </a>
         <button
           onClick={() => setOpenQuote(true)}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground hover:bg-primary/90"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-2.5 py-1 text-[11px] font-semibold text-white"
         >
           <Send className="h-3 w-3" /> Teklif iste
         </button>
@@ -500,7 +500,7 @@ function QuoteRequestForm({
           <button
             onClick={() => mut.mutate()}
             disabled={mut.isPending || issue.trim().length < 5}
-            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
           >
             {mut.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
             Gönder

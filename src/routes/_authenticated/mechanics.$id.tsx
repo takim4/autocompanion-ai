@@ -270,7 +270,7 @@ function ReviewForm({
         <button
           onClick={() => mut.mutate()}
           disabled={mut.isPending || rating === 0}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {myReview ? "Güncelle" : "Gönder"}
@@ -305,7 +305,7 @@ function QuoteBox({ mechanicId }: { mechanicId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+        className="inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3.5 py-2 text-xs font-semibold text-white"
       >
         <Send className="h-3.5 w-3.5" /> Teklif iste
       </button>
@@ -333,7 +333,7 @@ function QuoteBox({ mechanicId }: { mechanicId: string }) {
         <button
           onClick={() => mut.mutate()}
           disabled={mut.isPending || issue.trim().length < 5}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Gönder
