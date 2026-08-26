@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 px-3 pb-3 md:hidden">
-      <div className="mx-auto flex max-w-md items-center justify-between gap-1 rounded-[1.75rem] border border-border/60 bg-popover/90 px-2 py-2 shadow-[0_16px_40px_-16px_hsl(var(--shadow-color)/0.55)] backdrop-blur-xl">
+    <nav className="safe-bottom sticky bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden">
+      <ul className="mx-auto flex max-w-md items-end justify-around px-2 pb-1.5 pt-2">
         {NAV_ITEMS.map((it) => {
           const active = pathname === it.to || pathname.startsWith(it.to + "/");
           const Icon = it.icon;
@@ -14,32 +14,52 @@ export function BottomNav() {
 
           if (isCenter) {
             return (
-              <Link
-                key={it.to}
-                to={it.to}
-                aria-label={it.label}
-                className="relative -mt-6 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-full bg-brand-gradient text-white shadow-[0_10px_24px_-6px_hsl(var(--shadow-color)/0.7)] transition-transform active:scale-95"
-              >
-                <Icon className="h-6 w-6" />
-              </Link>
+              <li key={it.to} className="flex-1">
+                <Link
+                  to={it.to}
+                  aria-label={it.label}
+                  className="mx-auto flex flex-col items-center gap-1"
+                >
+                  <span
+                    className={cn(
+                      "-mt-5 flex h-12 w-12 items-center justify-center rounded-full border transition-colors",
+                      active
+                        ? "border-transparent bg-brand-gradient"
+                        : "border-foreground/25 bg-background text-foreground",
+                    )}
+                  >
+                    <Icon className={cn("h-5 w-5", active && "text-current")} />
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[10px] font-semibold uppercase tracking-wide",
+                      active ? "text-foreground" : "text-muted-foreground",
+                    )}
+                  >
+                    {it.label}
+                  </span>
+                </Link>
+              </li>
             );
           }
 
           return (
-            <Link
-              key={it.to}
-              to={it.to}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-1 rounded-2xl py-2 text-[11px] font-semibold transition-colors",
-                active ? "text-primary" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {it.label}
-            </Link>
+            <li key={it.to} className="flex-1">
+              <Link
+                to={it.to}
+                className={cn(
+                  "flex flex-col items-center gap-1 py-1 text-[10px] font-semibold uppercase tracking-wide transition-colors",
+                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.75} />
+                {it.label}
+                <span className={cn("h-[3px] w-[3px] rounded-full", active ? "bg-foreground" : "bg-transparent")} />
+              </Link>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </nav>
   );
 }

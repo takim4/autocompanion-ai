@@ -63,22 +63,18 @@ function SettingsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Ayarlar</h1>
-        <p className="text-sm text-muted-foreground">Profil, tema ve hesap</p>
+    <div className="mx-auto max-w-xl">
+      <header className="mb-8 border-b border-border pb-4">
+        <h1 className="font-display text-3xl font-medium tracking-tight">Ayarlar</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Profil, görünüm ve hesap</p>
       </header>
 
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-base font-semibold">Profil</h2>
+      <section className="border-b border-border py-6">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Profil</h2>
         <div className="mt-4 space-y-4">
           <div>
             <Label htmlFor="dn">Ad Soyad</Label>
-            <Input
-              id="dn"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-            />
+            <Input id="dn" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="bio">Hakkımda</Label>
@@ -91,16 +87,14 @@ function SettingsPage() {
             />
           </div>
           <Button variant="brand" onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {mut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Kaydet
           </Button>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-base font-semibold">Görünüm</h2>
+      <section className="border-b border-border py-6">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Görünüm</h2>
         <div className="mt-4 grid grid-cols-3 gap-2">
           {themes.map((t) => {
             const Icon = t.icon;
@@ -108,10 +102,8 @@ function SettingsPage() {
               <button
                 key={t.v}
                 onClick={() => setTheme(t.v)}
-                className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
-                  theme === t.v
-                    ? "border-primary bg-primary-dim text-primary"
-                    : "border-border hover:border-primary/40"
+                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${
+                  theme === t.v ? "border-foreground" : "border-border hover:border-foreground/40"
                 }`}
               >
                 <Icon className="h-5 w-5" />
@@ -122,13 +114,9 @@ function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-base font-semibold">Hesap</h2>
-        <Button
-          variant="destructive"
-          className="mt-4"
-          onClick={signOut}
-        >
+      <section className="py-6">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Hesap</h2>
+        <Button variant="destructive" className="mt-4" onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" /> Çıkış Yap
         </Button>
       </section>

@@ -42,6 +42,8 @@ interface Draft {
   nickname: string;
 }
 
+const STEPS = ["Marka", "Model", "Yıl", "Detaylar", "İsim"];
+
 function NewVehiclePage() {
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -95,26 +97,25 @@ function NewVehiclePage() {
     step === 3 ||
     step === 4;
 
-  const steps = ["Marka", "Model", "Yıl", "Detaylar", "İsim"];
   const models = POPULAR_MODELS[d.brand] ?? [];
 
   return (
     <div className="mx-auto max-w-lg">
-      <button
-        onClick={() => (step === 0 ? nav({ to: "/garage" }) : setStep((s) => (s - 1) as Step))}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Geri
-      </button>
+      <div className="mb-8 flex items-center justify-between border-b border-border pb-4">
+        <button
+          onClick={() => (step === 0 ? nav({ to: "/garage" }) : setStep((s) => (s - 1) as Step))}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Geri
+        </button>
+        <span className="font-display text-sm text-muted-foreground">
+          <span className="text-foreground">{String(step + 1).padStart(2, "0")}</span> / {String(STEPS.length).padStart(2, "0")}
+        </span>
+      </div>
 
-      <div className="mb-6 flex items-center gap-1">
-        {steps.map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 flex-1 rounded-full transition ${
-              i <= step ? "bg-brand-gradient" : "bg-muted"
-            }`}
-          />
+      <div className="mb-8 flex items-center gap-1.5">
+        {STEPS.map((_, i) => (
+          <div key={i} className={`h-[3px] flex-1 rounded-full transition-colors ${i <= step ? "bg-foreground" : "bg-border"}`} />
         ))}
       </div>
 
@@ -124,15 +125,12 @@ function NewVehiclePage() {
           initial={{ opacity: 0, x: 15 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -15 }}
-          className="rounded-2xl border border-border bg-card p-6"
         >
           {step === 0 && (
             <>
-              <h2 className="text-xl font-bold">Markanı seç</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Aracının markası hangisi?
-              </p>
-              <div className="mt-4 grid max-h-[50vh] grid-cols-2 gap-2 overflow-y-auto pr-1">
+              <h1 className="font-display text-2xl font-medium tracking-tight">Markanı seç</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Aracının markası hangisi?</p>
+              <div className="mt-6 grid max-h-[50vh] grid-cols-2 gap-2 overflow-y-auto pr-1">
                 {CAR_BRANDS.map((b) => (
                   <button
                     key={b}
@@ -140,10 +138,10 @@ function NewVehiclePage() {
                       update("brand", b);
                       update("model", "");
                     }}
-                    className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
+                    className={`rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition ${
                       d.brand === b
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background hover:border-primary/50"
+                        ? "border-foreground bg-primary text-primary-foreground"
+                        : "border-border hover:border-foreground/40"
                     }`}
                   >
                     {b}
@@ -154,20 +152,18 @@ function NewVehiclePage() {
           )}
           {step === 1 && (
             <>
-              <h2 className="text-xl font-bold">Model</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {d.brand} için model
-              </p>
+              <h1 className="font-display text-2xl font-medium tracking-tight">Model</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{d.brand} için model</p>
               {models.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-6 flex flex-wrap gap-2">
                   {models.map((m) => (
                     <button
                       key={m}
                       onClick={() => update("model", m)}
                       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                         d.model === m
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-background hover:border-primary/50"
+                          ? "border-foreground bg-primary text-primary-foreground"
+                          : "border-border hover:border-foreground/40"
                       }`}
                     >
                       {m}
@@ -175,7 +171,7 @@ function NewVehiclePage() {
                   ))}
                 </div>
               )}
-              <div className="mt-4">
+              <div className="mt-5">
                 <Label htmlFor="model-in">Veya elle yaz</Label>
                 <Input
                   id="model-in"
@@ -188,12 +184,9 @@ function NewVehiclePage() {
           )}
           {step === 2 && (
             <>
-              <h2 className="text-xl font-bold">Model yılı</h2>
-              <Select
-                value={String(d.year)}
-                onValueChange={(v) => update("year", Number(v))}
-              >
-                <SelectTrigger className="mt-4">
+              <h1 className="font-display text-2xl font-medium tracking-tight">Model yılı</h1>
+              <Select value={String(d.year)} onValueChange={(v) => update("year", Number(v))}>
+                <SelectTrigger className="mt-6">
                   <SelectValue placeholder="Yıl seç" />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
@@ -208,11 +201,11 @@ function NewVehiclePage() {
           )}
           {step === 3 && (
             <>
-              <h2 className="text-xl font-bold">Teknik detaylar</h2>
+              <h1 className="font-display text-2xl font-medium tracking-tight">Teknik detaylar</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 Opsiyonel — daha isabetli teşhis için önerilir.
               </p>
-              <div className="mt-5 space-y-4">
+              <div className="mt-6 space-y-4">
                 <div>
                   <Label htmlFor="km">Kilometre</Label>
                   <Input
@@ -262,11 +255,11 @@ function NewVehiclePage() {
           )}
           {step === 4 && (
             <>
-              <h2 className="text-xl font-bold">Son dokunuş</h2>
+              <h1 className="font-display text-2xl font-medium tracking-tight">Son dokunuş</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 Aracına bir takma isim ver (opsiyonel).
               </p>
-              <div className="mt-4">
+              <div className="mt-6">
                 <Label htmlFor="nick">Takma İsim</Label>
                 <Input
                   id="nick"
@@ -276,9 +269,9 @@ function NewVehiclePage() {
                 />
               </div>
 
-              <div className="mt-6 rounded-lg bg-muted p-4 text-sm">
-                <p className="font-semibold">Özet</p>
-                <p className="mt-1 text-muted-foreground">
+              <div className="mt-6 border-t border-border pt-5 text-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Özet</p>
+                <p className="mt-1 font-display text-lg">
                   {d.brand} {d.model} · {d.year}
                   {d.mileage_km && ` · ${Number(d.mileage_km).toLocaleString("tr-TR")} km`}
                 </p>
@@ -288,22 +281,14 @@ function NewVehiclePage() {
         </motion.div>
       </AnimatePresence>
 
-      <div className="sticky bottom-20 md:bottom-4 z-10 mt-5 flex justify-end rounded-xl border border-border bg-background/95 p-3 backdrop-blur">
+      <div className="sticky bottom-20 md:bottom-4 z-10 mt-6 flex justify-end border-t border-border bg-background/95 py-4 backdrop-blur">
         {step < 4 ? (
-          <Button
-            variant="brand"
-            disabled={!canNext}
-            onClick={() => setStep((s) => (s + 1) as Step)}
-          >
+          <Button variant="brand" disabled={!canNext} onClick={() => setStep((s) => (s + 1) as Step)}>
             Devam <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         ) : (
           <Button variant="brand" onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? (
-              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-            ) : (
-              <Check className="mr-1.5 h-4 w-4" />
-            )}
+            {mut.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Check className="mr-1.5 h-4 w-4" />}
             Kaydet
           </Button>
         )}

@@ -57,7 +57,7 @@ function ForumPostPage() {
         title="Gönderi bulunamadı"
         description="Bu gönderi kaldırılmış olabilir."
         action={
-          <Link to="/forum" className="text-sm font-medium text-primary hover:underline">
+          <Link to="/forum" className="text-sm font-medium underline">
             Foruma dön
           </Link>
         }
@@ -66,71 +66,70 @@ function ForumPostPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <article className="mx-auto max-w-2xl">
       <Link
         to="/forum"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        className="mb-8 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> Foruma dön
+        <ArrowLeft className="h-3.5 w-3.5" /> Foruma dön
       </Link>
 
-      {/* Başlık, etiketler */}
-      <header className="rounded-2xl border border-border bg-card p-5">
-        <PostAuthor userId={post.user_id} name={post.author_name} avatar={post.author_avatar}>
-          <p className="text-[11px] text-muted-foreground">
-            {new Date(post.created_at).toLocaleString("tr-TR")}
-          </p>
-        </PostAuthor>
-        <h1 className="mt-3 text-xl font-bold">{post.title}</h1>
+      <header>
         {post.tags?.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {post.tags.map((t: string) => (
-              <span
-                key={t}
-                className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-              >
-                #{t}
-              </span>
-            ))}
-          </div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            {post.tags.map((t: string) => `#${t}`).join("  ")}
+          </p>
         )}
+        <h1 className="font-display text-3xl font-medium leading-tight tracking-tight sm:text-4xl">
+          {post.title}
+        </h1>
+        <div className="mt-4">
+          <PostAuthor userId={post.user_id} name={post.author_name} avatar={post.author_avatar}>
+            <p className="text-xs text-muted-foreground">
+              {new Date(post.created_at).toLocaleString("tr-TR")}
+            </p>
+          </PostAuthor>
+        </div>
       </header>
 
-      {/* Gönderi + foto */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card">
-        {post.media_url ? (
-          post.media_type === "video" ? (
-            <video src={post.media_url} controls className="h-56 w-full object-cover" />
+      {post.media_url && (
+        <div className="mt-6 overflow-hidden rounded-2xl bg-muted">
+          {post.media_type === "video" ? (
+            <video src={post.media_url} controls className="w-full" />
           ) : (
-            <img src={post.media_url} alt="" className="h-56 w-full object-cover" />
-          )
-        ) : null}
-        <div className="p-5">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.body}</p>
-          <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
-            <button
-              onClick={() => likeMut.mutate()}
-              disabled={likeMut.isPending}
-              className={`flex items-center gap-1.5 ${post.liked_by_me ? "text-accent" : ""}`}
-            >
-              <Heart className={`h-4 w-4 ${post.liked_by_me ? "fill-current" : ""}`} />
-              {post.like_count}
-            </button>
-            <span className="flex items-center gap-1.5">{post.comments.length} yorum</span>
-          </div>
+            <img src={post.media_url} alt="" className="w-full object-cover" />
+          )}
         </div>
-      </section>
+      )}
 
-      <AdBanner
-        title="Sigortanı AutoSocial üzerinden yenile"
-        description="Anlaşmalı sigorta ortaklarından saniyeler içinde teklif al."
-        cta="Teklif Al"
-      />
+      <div className="mt-6 border-t border-border pt-6">
+        <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{post.body}</p>
+        <div className="mt-6 flex items-center gap-5 border-t border-border pt-4 text-sm text-muted-foreground">
+          <button
+            onClick={() => likeMut.mutate()}
+            disabled={likeMut.isPending}
+            className={`flex items-center gap-1.5 ${post.liked_by_me ? "text-foreground" : "hover:text-foreground"}`}
+          >
+            <Heart className={`h-4 w-4 ${post.liked_by_me ? "fill-current" : ""}`} />
+            {post.like_count}
+          </button>
+          <span className="flex items-center gap-1.5">{post.comments.length} yorum</span>
+        </div>
+      </div>
 
-      {/* Yorum, beğen */}
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <h2 className="mb-3 text-sm font-semibold">Yorumlar ({post.comments.length})</h2>
-        <div className="space-y-3">
+      <div className="my-8">
+        <AdBanner
+          title="Sigortanı AutoSocial üzerinden yenile"
+          description="Anlaşmalı sigorta ortaklarından saniyeler içinde teklif al."
+          cta="Teklif Al"
+        />
+      </div>
+
+      <section>
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Yorumlar ({post.comments.length})
+        </h2>
+        <div className="divide-y divide-border">
           {post.comments.map(
             (c: {
               id: string;
@@ -142,7 +141,7 @@ function ForumPostPage() {
               like_count: number;
               liked_by_me: boolean;
             }) => (
-              <div key={c.id} className="flex gap-2">
+              <div key={c.id} className="flex gap-3 py-3">
                 {c.user_id ? (
                   <Link to="/u/$userId" params={{ userId: c.user_id }} className="shrink-0">
                     <CommentAvatar avatar={c.author_avatar} />
@@ -150,14 +149,10 @@ function ForumPostPage() {
                 ) : (
                   <CommentAvatar avatar={c.author_avatar} />
                 )}
-                <div className="min-w-0 flex-1 rounded-xl bg-muted/60 px-3 py-2">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     {c.user_id ? (
-                      <Link
-                        to="/u/$userId"
-                        params={{ userId: c.user_id }}
-                        className="text-xs font-semibold hover:underline"
-                      >
+                      <Link to="/u/$userId" params={{ userId: c.user_id }} className="text-xs font-semibold hover:underline">
                         {c.author_name}
                       </Link>
                     ) : (
@@ -170,19 +165,18 @@ function ForumPostPage() {
                   <p className="mt-0.5 text-sm">{c.content}</p>
                   <button
                     onClick={() => commentLikeMut.mutate(c.id)}
-                    className={`mt-1 flex items-center gap-1 text-[11px] hover:text-accent ${
-                      c.liked_by_me ? "text-accent" : "text-muted-foreground"
+                    className={`mt-1 flex items-center gap-1 text-[11px] hover:text-foreground ${
+                      c.liked_by_me ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >
-                    <Heart className={`h-3 w-3 ${c.liked_by_me ? "fill-current" : ""}`} />{" "}
-                    {c.like_count}
+                    <Heart className={`h-3 w-3 ${c.liked_by_me ? "fill-current" : ""}`} /> {c.like_count}
                   </button>
                 </div>
               </div>
             ),
           )}
           {post.comments.length === 0 && (
-            <p className="text-sm text-muted-foreground">İlk yorumu sen yaz.</p>
+            <p className="py-3 text-sm text-muted-foreground">İlk yorumu sen yaz.</p>
           )}
         </div>
         <form
@@ -191,29 +185,25 @@ function ForumPostPage() {
             if (!comment.trim() || commentMut.isPending) return;
             commentMut.mutate(comment.trim());
           }}
-          className="mt-4 flex items-center gap-2 border-t border-border pt-3"
+          className="mt-4 flex items-center gap-2 border-t border-border pt-4"
         >
           <input
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Yorum yaz…"
-            className="flex-1 rounded-full border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="flex-1 border-b border-border bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground"
           />
           <button
             type="submit"
             disabled={!comment.trim() || commentMut.isPending}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gradient disabled:opacity-50"
             aria-label="Gönder"
           >
-            {commentMut.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            {commentMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>
         </form>
       </section>
-    </div>
+    </article>
   );
 }
 
@@ -230,11 +220,7 @@ function PostAuthor({
 }) {
   const avatarEl = (
     <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
-      {avatar?.startsWith("http") ? (
-        <img src={avatar} alt="" className="h-full w-full object-cover" />
-      ) : (
-        avatar
-      )}
+      {avatar?.startsWith("http") ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : avatar}
     </span>
   );
   if (!userId) {
@@ -262,11 +248,7 @@ function PostAuthor({
 function CommentAvatar({ avatar }: { avatar: string }) {
   return (
     <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-sm">
-      {avatar?.startsWith("http") ? (
-        <img src={avatar} alt="" className="h-full w-full object-cover" />
-      ) : (
-        avatar
-      )}
+      {avatar?.startsWith("http") ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : avatar}
     </span>
   );
 }

@@ -42,28 +42,29 @@ function MechanicPanel() {
   const p = q.data as { id: string; avg_rating: number; rating_count: number } | null;
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-3">
+    <div className="space-y-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-4">
         <div>
-          <h1 className="flex items-center gap-2.5 text-2xl font-bold">
-            <Wrench className="h-6 w-6 text-primary" /> Usta Paneli
-          </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <Wrench className="h-3.5 w-3.5" /> İşletme Hesabı
+          </p>
+          <h1 className="font-display text-3xl font-medium tracking-tight">Usta Paneli</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             İşletme profilini yönet ve gelen teklif isteklerini cevapla.
           </p>
         </div>
         {p && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {p.rating_count > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1.5 text-sm font-semibold text-accent-foreground">
-                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+              <span className="inline-flex items-center gap-1 text-sm font-semibold">
+                <Star className="h-4 w-4 fill-current" />
                 {Number(p.avg_rating).toFixed(1)} ({p.rating_count})
               </span>
             )}
             <Link
               to="/mechanics/$id"
               params={{ id: p.id }}
-              className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold hover:border-foreground"
             >
               <ExternalLink className="h-3.5 w-3.5" /> İşletme sayfamı gör
             </Link>
@@ -86,9 +87,9 @@ function ReviewsReceived({ mechanicId }: { mechanicId: string }) {
   });
 
   return (
-    <section>
-      <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
-        <MessageSquareText className="h-4 w-4" /> Gelen Değerlendirmeler
+    <section className="border-t border-border pt-6">
+      <h2 className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <MessageSquareText className="h-3.5 w-3.5" /> Gelen Değerlendirmeler
       </h2>
       {q.isLoading && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -96,11 +97,11 @@ function ReviewsReceived({ mechanicId }: { mechanicId: string }) {
         </div>
       )}
       {q.data && q.data.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+        <div className="py-8 text-center text-xs text-muted-foreground">
           Henüz müşteri değerlendirmesi yok.
         </div>
       )}
-      <ul className="space-y-2">
+      <ul className="divide-y divide-border">
         {(q.data ?? []).map(
           (r: {
             id: string;
@@ -109,7 +110,7 @@ function ReviewsReceived({ mechanicId }: { mechanicId: string }) {
             comment: string | null;
             created_at: string;
           }) => (
-            <li key={r.id} className="rounded-lg border border-border bg-card p-3">
+            <li key={r.id} className="py-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold">{r.author_name}</span>
                 <div className="flex items-center gap-0.5">
@@ -223,9 +224,9 @@ function ProfileEditor({ profile }: { profile: unknown }) {
   };
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
-      <h2 className="mb-3 text-sm font-semibold">İşletme Profili</h2>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+    <section className="border-t border-border pt-6">
+      <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">İşletme Profili</h2>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Input
           label="İşletme adı *"
           value={form.business_name}
@@ -254,11 +255,11 @@ function ProfileEditor({ profile }: { profile: unknown }) {
           onChange={(v) => setForm({ ...form, email: v })}
         />
         <div>
-          <label className="mb-1 block text-xs font-medium">Şehir *</label>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Şehir *</label>
           <select
             value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })}
-            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="w-full border-b border-border bg-transparent py-1.5 text-sm outline-none focus:border-foreground"
           >
             <option value="">Şehir seç…</option>
             {TR_CITIES.map((c) => (
@@ -284,7 +285,7 @@ function ProfileEditor({ profile }: { profile: unknown }) {
           <button
             type="button"
             onClick={useMyLocation}
-            className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1.5 text-xs hover:bg-secondary/80"
+            className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs hover:border-foreground"
           >
             <MapPin className="h-3.5 w-3.5" /> Konumumu kullan
           </button>
@@ -296,7 +297,7 @@ function ProfileEditor({ profile }: { profile: unknown }) {
         </div>
 
         <div className="md:col-span-2">
-          <label className="mb-1 block text-xs font-medium">Uzmanlık alanları *</label>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Uzmanlık alanları *</label>
           <div className="flex flex-wrap gap-1.5">
             {SPECIALTIES.map((s) => {
               const on = form.specialties.includes(s);
@@ -305,10 +306,8 @@ function ProfileEditor({ profile }: { profile: unknown }) {
                   key={s}
                   type="button"
                   onClick={() => toggleSpec(s)}
-                  className={`rounded-full border px-2.5 py-1 text-[11px] ${
-                    on
-                      ? "border-primary bg-primary/15 text-foreground"
-                      : "border-border bg-background hover:bg-accent"
+                  className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                    on ? "border-foreground bg-primary text-primary-foreground" : "border-border hover:border-foreground/40"
                   }`}
                 >
                   {SPECIALTY_LABELS[s]}
@@ -328,13 +327,13 @@ function ProfileEditor({ profile }: { profile: unknown }) {
         </div>
 
         <div className="md:col-span-2">
-          <label className="mb-1 block text-xs font-medium">Tanıtım</label>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tanıtım</label>
           <textarea
             value={form.bio}
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
             rows={3}
             maxLength={1000}
-            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="w-full resize-none border-b border-border bg-transparent py-1.5 text-sm outline-none focus:border-foreground"
           />
         </div>
 
@@ -348,7 +347,7 @@ function ProfileEditor({ profile }: { profile: unknown }) {
         </label>
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-6 flex justify-end">
         <button
           onClick={() => mut.mutate()}
           disabled={
@@ -359,7 +358,7 @@ function ProfileEditor({ profile }: { profile: unknown }) {
             !form.city ||
             form.specialties.length === 0
           }
-          className="inline-flex items-center gap-1 rounded-xl bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Kaydet
@@ -382,13 +381,13 @@ function Input({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium">{label}</label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</label>
       <input
         type="text"
         value={value ?? ""}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+        className="w-full border-b border-border bg-transparent py-1.5 text-sm outline-none focus:border-foreground"
       />
     </div>
   );
@@ -399,15 +398,15 @@ function IncomingRequests() {
   const q = useQuery({ queryKey: ["incoming-quotes"], queryFn: () => fn() });
 
   return (
-    <section>
-      <h2 className="mb-3 text-sm font-semibold">Gelen Teklif İstekleri</h2>
+    <section className="border-t border-border pt-6">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Gelen Teklif İstekleri</h2>
       {q.isLoading && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Yükleniyor…
         </div>
       )}
       {q.data && q.data.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+        <div className="py-8 text-center text-xs text-muted-foreground">
           Henüz teklif isteği yok.
         </div>
       )}
@@ -458,7 +457,7 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
   const contact = req.preferred_contact as string;
 
   return (
-    <li className="rounded-lg border border-border bg-card p-4">
+    <li className="border-b border-border pb-5 last:border-0">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-sm font-medium">
@@ -469,16 +468,16 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
           </p>
         </div>
         {already && (
-          <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-medium text-blue-600">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             Cevaplandı
           </span>
         )}
       </div>
       <p className="mt-2 whitespace-pre-wrap text-xs">{req.issue_summary as string}</p>
       {req.diagnosis_snapshot ? (
-        <details className="mt-2 rounded bg-muted/40 p-2 text-[11px]">
+        <details className="mt-2 border-l-2 border-border pl-2 text-[11px]">
           <summary className="cursor-pointer font-medium">AI teşhis özeti</summary>
-          <pre className="mt-1 whitespace-pre-wrap font-sans">
+          <pre className="mt-1 whitespace-pre-wrap font-sans text-muted-foreground">
             {req.diagnosis_snapshot as string}
           </pre>
         </details>
@@ -487,35 +486,35 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
       {!open && !already && (
         <button
           onClick={() => setOpen(true)}
-          className="mt-3 inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white"
+          className="mt-3 inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold"
         >
           <Send className="h-3 w-3" /> Teklif ver
         </button>
       )}
 
       {open && (
-        <div className="mt-3 space-y-2 rounded-md border border-border p-3">
+        <div className="mt-3 space-y-3 border-t border-border pt-3">
           <div className="grid grid-cols-3 gap-2">
             <input
               type="number"
               placeholder="Min ₺"
               value={priceMin}
               onChange={(e) => setPriceMin(e.target.value)}
-              className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+              className="border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
             />
             <input
               type="number"
               placeholder="Max ₺"
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value)}
-              className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+              className="border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
             />
             <input
               type="number"
               placeholder="Süre (gün)"
               value={etaDays}
               onChange={(e) => setEtaDays(e.target.value)}
-              className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+              className="border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
             />
           </div>
           <textarea
@@ -523,19 +522,19 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Açıklama, parça dahil mi, ne yapılacak…"
-            className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+            className="w-full resize-none border-b border-border bg-transparent py-1 text-xs outline-none focus:border-foreground"
           />
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setOpen(false)}
-              className="rounded-md border border-input bg-background px-3 py-1 text-xs hover:bg-accent"
+              className="rounded-full border border-border px-3 py-1 text-xs hover:border-foreground"
             >
               İptal
             </button>
             <button
               onClick={() => mut.mutate()}
               disabled={mut.isPending || message.trim().length < 2}
-              className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1 text-xs font-semibold disabled:opacity-50"
             >
               {mut.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
               Gönder

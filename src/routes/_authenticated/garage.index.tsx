@@ -36,12 +36,12 @@ function GaragePage() {
 
   return (
     <div>
-      <header className="mb-6 flex items-center justify-between">
+      <header className="mb-8 flex items-end justify-between gap-4 border-b border-border pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Garajım</h1>
-          <p className="text-sm text-muted-foreground">
-            Kayıtlı araçlarını yönet
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            {q.data?.length ?? 0} kayıtlı araç
           </p>
+          <h1 className="font-display text-3xl font-medium tracking-tight">Garajım</h1>
         </div>
         <Button asChild variant="brand">
           <Link to="/garage/new">
@@ -68,62 +68,52 @@ function GaragePage() {
       )}
 
       {q.data && q.data.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="divide-y divide-border">
           {q.data.map((v) => (
-            <article
-              key={v.id}
-              className="card-interactive group relative rounded-2xl border border-border bg-card p-5"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                    {v.brand}
-                  </p>
-                  <h3 className="mt-1 text-lg font-semibold">
-                    {v.nickname ?? v.model}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {v.model} · {v.year}
-                  </p>
-                </div>
-                <button
-                  onClick={() => del.mutate(v.id)}
-                  className="rounded-md p-1.5 text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                  aria-label="Sil"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+            <article key={v.id} className="group flex items-start justify-between gap-4 py-6">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  {v.brand} · {v.year}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-medium tracking-tight">
+                  {v.nickname ?? v.model}
+                </h2>
+                {v.nickname && <p className="text-sm text-muted-foreground">{v.model}</p>}
+
+                <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-xs">
+                  {v.mileage_km != null && (
+                    <div className="flex items-baseline gap-1.5">
+                      <dt className="text-muted-foreground">Kilometre</dt>
+                      <dd className="font-semibold">{v.mileage_km.toLocaleString("tr-TR")}</dd>
+                    </div>
+                  )}
+                  {v.fuel && (
+                    <div className="flex items-baseline gap-1.5">
+                      <dt className="text-muted-foreground">Yakıt</dt>
+                      <dd className="font-semibold">{FUEL_LABELS[v.fuel]}</dd>
+                    </div>
+                  )}
+                  {v.transmission && (
+                    <div className="flex items-baseline gap-1.5">
+                      <dt className="text-muted-foreground">Şanzıman</dt>
+                      <dd className="font-semibold">{TRANSMISSION_LABELS[v.transmission]}</dd>
+                    </div>
+                  )}
+                  {v.engine_cc && (
+                    <div className="flex items-baseline gap-1.5">
+                      <dt className="text-muted-foreground">Motor</dt>
+                      <dd className="font-semibold">{v.engine_cc} cc</dd>
+                    </div>
+                  )}
+                </dl>
               </div>
-              <dl className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                {v.mileage_km != null && (
-                  <div>
-                    <dt className="text-muted-foreground">Kilometre</dt>
-                    <dd className="font-medium">
-                      {v.mileage_km.toLocaleString("tr-TR")}
-                    </dd>
-                  </div>
-                )}
-                {v.fuel && (
-                  <div>
-                    <dt className="text-muted-foreground">Yakıt</dt>
-                    <dd className="font-medium">{FUEL_LABELS[v.fuel]}</dd>
-                  </div>
-                )}
-                {v.transmission && (
-                  <div>
-                    <dt className="text-muted-foreground">Şanzıman</dt>
-                    <dd className="font-medium">
-                      {TRANSMISSION_LABELS[v.transmission]}
-                    </dd>
-                  </div>
-                )}
-                {v.engine_cc && (
-                  <div>
-                    <dt className="text-muted-foreground">Motor</dt>
-                    <dd className="font-medium">{v.engine_cc} cc</dd>
-                  </div>
-                )}
-              </dl>
+              <button
+                onClick={() => del.mutate(v.id)}
+                className="rounded-full p-2 text-muted-foreground opacity-0 transition hover:text-destructive group-hover:opacity-100"
+                aria-label="Sil"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </article>
           ))}
         </div>
