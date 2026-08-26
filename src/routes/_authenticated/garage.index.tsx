@@ -43,7 +43,7 @@ function GaragePage() {
             Kayıtlı araçlarını yönet
           </p>
         </div>
-        <Button asChild>
+        <Button asChild variant="brand">
           <Link to="/garage/new">
             <Plus className="mr-1.5 h-4 w-4" /> Araç Ekle
           </Link>
@@ -58,7 +58,7 @@ function GaragePage() {
           title="Garajın boş"
           description="İlk aracını ekle, kronik sorunları ve topluluk çözümlerini gör."
           action={
-            <Button asChild>
+            <Button asChild variant="brand">
               <Link to="/garage/new">
                 <Plus className="mr-1.5 h-4 w-4" /> İlk Aracını Ekle
               </Link>
@@ -72,11 +72,11 @@ function GaragePage() {
           {q.data.map((v) => (
             <article
               key={v.id}
-              className="group relative rounded-2xl border border-border bg-card p-5 transition hover:border-primary/60 hover:shadow-md"
+              className="card-interactive group relative rounded-2xl border border-border bg-card p-5"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                     {v.brand}
                   </p>
                   <h3 className="mt-1 text-lg font-semibold">

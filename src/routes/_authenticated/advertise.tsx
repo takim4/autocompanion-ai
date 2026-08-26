@@ -107,8 +107,11 @@ function AdvertisePage() {
       </Link>
 
       <header className="rounded-2xl border border-border bg-card p-6">
-        <h1 className="flex items-center gap-2 text-xl font-bold">
-          <Megaphone className="h-5 w-5 text-primary" /> Reklam Ver
+        <h1 className="flex items-center gap-2.5 text-xl font-bold">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/15 text-accent">
+            <Megaphone className="h-4.5 w-4.5" />
+          </span>
+          Reklam Ver
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Talebini gönder, ekibimiz inceleyip seninle iletişime geçsin. Onaylanan reklamlar seçtiğin
@@ -220,7 +223,7 @@ function AdvertisePage() {
           <button
             onClick={() => mut.mutate()}
             disabled={!valid || mut.isPending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
           >
             {mut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             Talebi Gönder

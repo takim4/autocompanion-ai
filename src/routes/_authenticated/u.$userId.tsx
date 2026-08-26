@@ -80,7 +80,7 @@ function PublicProfilePage() {
 
       <div className="rounded-2xl border border-border bg-card p-6">
         <div className="flex items-start gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-gradient text-white">
             {p.avatar_url ? (
               <img src={p.avatar_url} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -109,7 +109,7 @@ function PublicProfilePage() {
               className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${
                 p.is_following
                   ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)]"
               }`}
             >
               {p.is_following ? "Takipte" : "Takip Et"}

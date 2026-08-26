@@ -44,21 +44,21 @@ function ProfilePage() {
   const p = q.data;
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="node-orbit-bg overflow-hidden rounded-2xl border border-border bg-brand-gradient p-6 text-white">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 ring-4 ring-white/15">
             <User className="h-7 w-7" />
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">{p?.display_name ?? "Kullanıcı"}</h1>
-            {p?.username && <p className="text-sm text-muted-foreground">@{p.username}</p>}
+            <h1 className="font-display text-xl font-bold">{p?.display_name ?? "Kullanıcı"}</h1>
+            {p?.username && <p className="text-sm text-white/60">@{p.username}</p>}
           </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-accent/20 px-3 py-1.5 text-sm font-semibold text-accent-foreground">
+          <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold">
             <Award className="h-4 w-4" />
             {p?.reputation ?? 0}
           </div>
         </div>
-        {p?.bio && <p className="mt-4 text-sm text-muted-foreground">{p.bio}</p>}
+        {p?.bio && <p className="mt-4 text-sm text-white/70">{p.bio}</p>}
       </div>
 
       <div className="grid gap-2">
@@ -313,9 +313,9 @@ function ProfileLink({
     <Link
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       to={to as any}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 hover:bg-accent/30"
+      className="card-interactive flex items-center gap-3 rounded-2xl border border-border bg-card p-4"
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-dim text-primary">
         {icon}
       </div>
       <div className="flex-1">

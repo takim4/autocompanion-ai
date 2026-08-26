@@ -16,7 +16,12 @@ function QuotesPage() {
   return (
     <div>
       <header className="mb-4">
-        <h1 className="text-2xl font-bold">Tekliflerim</h1>
+        <h1 className="flex items-center gap-2.5 text-2xl font-bold">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-dim text-primary">
+            <MessageCircle className="h-4.5 w-4.5" />
+          </span>
+          Tekliflerim
+        </h1>
         <p className="text-xs text-muted-foreground">
           Ustalara gönderdiğin teklif istekleri ve cevaplar burada.
         </p>

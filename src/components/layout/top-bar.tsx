@@ -10,10 +10,12 @@ export function TopBar({ title }: { title?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
   return (
-    <header className="safe-top sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/90 px-4 backdrop-blur">
-      <Link to="/forum" className="flex shrink-0 items-center gap-2">
-        <img src={logoAsset.url} alt="AutoSocial" className="h-8 w-8 rounded-lg object-cover" />
-        <span className="font-semibold tracking-tight">{title ?? "AutoSocial"}</span>
+    <header className="glass-panel safe-top sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border px-4">
+      <Link to="/forum" className="flex shrink-0 items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-brand-gradient shadow-[0_8px_20px_-6px_hsl(var(--shadow-color)/0.7)]">
+          <img src={logoAsset.url} alt="" className="h-full w-full object-cover" />
+        </span>
+        <span className="font-display font-bold tracking-tight">{title ?? "AutoSocial"}</span>
       </Link>
 
       {/* Tablette sadece ikon, masaüstünde (lg+) ikon+etiket — alt sekmelerin yerini alır */}
@@ -26,10 +28,10 @@ export function TopBar({ title }: { title?: string }) {
               key={it.to}
               to={it.to}
               title={it.label}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors lg:px-3 ${
+              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-semibold transition-all lg:px-3.5 ${
                 active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent/30 hover:text-foreground"
+                  ? "bg-brand-gradient text-white shadow-[0_8px_20px_-8px_hsl(var(--shadow-color)/0.7)]"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" />

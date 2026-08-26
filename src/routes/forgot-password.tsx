@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, KeyRound, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,14 +39,18 @@ function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6">
-        <h1 className="text-xl font-bold">Şifreni sıfırla</h1>
+    <div className="node-orbit-bg flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl shadow-black/[0.03]">
+        <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-dim text-primary">
+          <KeyRound className="h-5 w-5" />
+        </div>
+        <h1 className="mt-3 font-display text-2xl font-bold">Şifreni sıfırla</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           E-posta adresini gir, sıfırlama linki gönderelim.
         </p>
         {sent ? (
-          <div className="mt-6 rounded-lg bg-success/10 p-4 text-sm text-success-foreground">
+          <div className="mt-6 flex items-start gap-3 rounded-xl bg-success/10 p-4 text-sm text-success-foreground">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
             E-posta kutunu kontrol et. Link 1 saat geçerli.
           </div>
         ) : (
@@ -58,13 +62,13 @@ function ForgotPasswordPage() {
                 <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={busy}>
+            <Button type="submit" variant="brand" className="w-full" size="lg" disabled={busy}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Linki Gönder
             </Button>
           </form>
         )}
-        <Link to="/auth" className="mt-4 block text-center text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/auth" className="mt-4 block text-center text-sm font-medium text-muted-foreground hover:text-foreground">
           ← Girişe dön
         </Link>
       </div>

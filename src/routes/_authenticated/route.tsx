@@ -19,8 +19,8 @@ function AuthenticatedLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopBar />
-      <main className="flex-1 pb-20 md:pb-8">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6">
+      <main className="flex-1 pb-28 md:pb-8">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 md:py-8">
           <Outlet />
         </div>
       </main>

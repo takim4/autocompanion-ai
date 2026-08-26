@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export function LoadingState({ label = "Yükleniyor..." }: { label?: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-      <Loader2 className="h-6 w-6 animate-spin" />
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
       <p className="text-sm">{label}</p>
     </div>
   );
@@ -23,9 +23,11 @@ export function EmptyState({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border py-16 text-center">
-      <Icon className="h-10 w-10 text-muted-foreground" />
-      <h3 className="text-base font-semibold">{title}</h3>
+    <div className="node-orbit-bg flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-dim text-primary">
+        <Icon className="h-6 w-6" />
+      </div>
+      <h3 className="font-display text-base font-semibold">{title}</h3>
       {description && (
         <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
       )}
@@ -44,8 +46,10 @@ export function ErrorState({
   const message =
     error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu.";
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-destructive/40 bg-destructive/5 py-12 text-center">
-      <AlertCircle className="h-8 w-8 text-destructive" />
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 py-12 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+        <AlertCircle className="h-6 w-6" />
+      </div>
       <p className="max-w-md text-sm text-destructive">{message}</p>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
@@ -71,7 +75,7 @@ export function OfflineBanner() {
   }, []);
   if (online) return null;
   return (
-    <div className="flex items-center justify-center gap-2 bg-warning/20 py-2 text-xs text-warning-foreground">
+    <div className="flex items-center justify-center gap-2 bg-warning/20 py-2 text-xs font-medium text-warning-foreground">
       <WifiOff className="h-3.5 w-3.5" />
       İnternet bağlantısı yok — bazı özellikler çalışmayabilir
     </div>
@@ -81,7 +85,7 @@ export function OfflineBanner() {
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-muted ${className}`}
+      className={`animate-pulse rounded-2xl bg-muted ${className}`}
       aria-hidden
     />
   );

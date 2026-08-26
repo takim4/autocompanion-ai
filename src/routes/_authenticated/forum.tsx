@@ -121,8 +121,8 @@ function ForumPage() {
 
         {/* Popüler / Trend Konular */}
         <section>
-          <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <TrendingUp className="h-3.5 w-3.5" /> Popüler / Trend Konular
+          <h3 className="mb-2 flex items-center gap-1.5 font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <TrendingUp className="h-3.5 w-3.5 text-accent" /> Popüler / Trend Konular
           </h3>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {TREND_TOPICS.map((t) => (
@@ -293,7 +293,7 @@ function ComposePost() {
         <button
           onClick={() => mut.mutate()}
           disabled={!text.trim() || mut.isPending}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-40"
           aria-label="Paylaş"
         >
           {mut.isPending ? (
@@ -385,7 +385,7 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
       onKeyDown={(e) => {
         if (e.key === "Enter") navigate({ to: "/forum/$postId", params: { postId: post.id } });
       }}
-      className="cursor-pointer rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
+      className="card-interactive cursor-pointer rounded-2xl border border-border bg-card p-4"
     >
       <div className="flex items-center gap-2">
         {post.user_id ? (

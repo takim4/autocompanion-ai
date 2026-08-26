@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Bot, Loader2, Plus, Send, Trash2, User } from "lucide-react";
+import { Loader2, Plus, Send, Sparkles, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import {
   createConversation,
@@ -65,8 +65,11 @@ function AiChatPage() {
     <div>
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold">
-            <Bot className="h-6 w-6 text-primary" /> Destek Asistanı
+          <h1 className="flex items-center gap-2.5 text-2xl font-bold">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-white">
+              <Sparkles className="h-4.5 w-4.5" />
+            </span>
+            Destek Asistanı
           </h1>
           <p className="text-xs text-muted-foreground">
             Sorununu anlat, ön çözüm alalım; gerekirse yakınındaki doğrulanmış bir ustaya
@@ -87,10 +90,10 @@ function AiChatPage() {
               <li key={c.id}>
                 <button
                   onClick={() => setActiveId(c.id)}
-                  className={`group flex w-full items-center justify-between rounded-md border px-2.5 py-2 text-left text-xs transition-colors ${
+                  className={`group flex w-full items-center justify-between rounded-xl border px-2.5 py-2 text-left text-xs font-medium transition-colors ${
                     activeId === c.id
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border bg-card hover:bg-accent"
+                      ? "border-transparent bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)]"
+                      : "border-border bg-card hover:bg-secondary"
                   }`}
                 >
                   <span className="truncate">{c.title}</span>
@@ -110,7 +113,7 @@ function AiChatPage() {
           </ul>
         </aside>
 
-        <section className="min-h-[60vh] rounded-lg border border-border bg-card">
+        <section className="min-h-[60vh] rounded-2xl border border-border bg-card">
           {activeId ? (
             <ChatWindow conversationId={activeId} />
           ) : (
@@ -139,7 +142,7 @@ function NewChatButton({
       <button
         disabled={loading}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex w-full items-center justify-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-brand-gradient px-3 py-2 text-xs font-semibold text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
       >
         {loading ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -279,7 +282,7 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
         <button
           type="submit"
           disabled={sendMut.isPending || !input.trim()}
-          className="inline-flex h-11 items-center justify-center gap-1 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center gap-1 rounded-xl bg-brand-gradient px-4 text-sm font-semibold text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
         >
           <Send className="h-4 w-4" />
           Gönder
@@ -295,14 +298,14 @@ function MessageBubble({ role, content }: { role: string; content: string }) {
     <div className={`flex gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
       <div
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          isUser ? "bg-secondary text-secondary-foreground" : "bg-primary text-primary-foreground"
+          isUser ? "bg-primary-dim text-primary" : "bg-brand-gradient text-white"
         }`}
       >
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+        {isUser ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
       </div>
       <div
-        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-          isUser ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"
+        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${
+          isUser ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm border border-border bg-card text-foreground"
         }`}
       >
         {isUser ? (

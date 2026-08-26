@@ -157,7 +157,7 @@ function FeedPage() {
               >
                 <div
                   className={`rounded-full p-[2px] ${
-                    seen ? "bg-muted" : "bg-gradient-to-tr from-primary via-accent to-primary"
+                    seen ? "bg-muted" : "bg-brand-gradient"
                   }`}
                 >
                   <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-card text-2xl">
@@ -188,7 +188,7 @@ function FeedPage() {
             className="w-full rounded-xl border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
-        <Button asChild size="sm" className="shrink-0">
+        <Button asChild size="sm" variant="brand" className="shrink-0">
           <Link to="/feed/create">
             <Video className="mr-1.5 h-4 w-4" /> Video Oluştur
           </Link>

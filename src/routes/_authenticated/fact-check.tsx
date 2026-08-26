@@ -60,8 +60,11 @@ function FactCheckPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <header>
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <ShieldCheck className="h-6 w-6 text-primary" /> Doğruluk Kontrolü
+        <h1 className="flex items-center gap-2.5 text-2xl font-bold">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-dim text-primary">
+            <ShieldCheck className="h-4.5 w-4.5" />
+          </span>
+          Doğruluk Kontrolü
         </h1>
         <p className="text-xs text-muted-foreground">
           Araç özellikleri, modifiye detayları veya forum girdilerini yapay zekâ kanıta dayalı
@@ -69,8 +72,8 @@ function FactCheckPage() {
         </p>
       </header>
 
-      <div className="rounded-lg border border-border bg-card p-4">
-        <div className="mb-3 flex gap-1 rounded-md bg-muted p-1 text-xs">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="mb-3 flex gap-1 rounded-xl bg-muted p-1 text-xs">
           <button
             onClick={() => setMode("text")}
             className={`flex-1 rounded px-3 py-1.5 font-medium transition-colors ${
@@ -137,7 +140,7 @@ function FactCheckPage() {
         <button
           onClick={() => mut.mutate()}
           disabled={!canSubmit || mut.isPending}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Doğrula

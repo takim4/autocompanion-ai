@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,9 +48,12 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6">
-        <h1 className="text-xl font-bold">Yeni şifre belirle</h1>
+    <div className="node-orbit-bg flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl shadow-black/[0.03]">
+        <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-dim text-primary">
+          <ShieldCheck className="h-5 w-5" />
+        </div>
+        <h1 className="mt-3 font-display text-2xl font-bold">Yeni şifre belirle</h1>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="password">Yeni Şifre</Label>
@@ -66,7 +69,7 @@ function ResetPasswordPage() {
               <p className="text-xs text-destructive">{form.formState.errors.confirm.message}</p>
             )}
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>
+          <Button type="submit" variant="brand" className="w-full" size="lg" disabled={busy}>
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Şifreyi Güncelle
           </Button>

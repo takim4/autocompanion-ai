@@ -90,7 +90,7 @@ function SettingsPage() {
               placeholder="Otomobil tutkunu, hobi tamirci..."
             />
           </div>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+          <Button variant="brand" onClick={() => mut.mutate()} disabled={mut.isPending}>
             {mut.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
@@ -108,9 +108,9 @@ function SettingsPage() {
               <button
                 key={t.v}
                 onClick={() => setTheme(t.v)}
-                className={`flex flex-col items-center gap-2 rounded-lg border p-4 transition ${
+                className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
                   theme === t.v
-                    ? "border-primary bg-primary/10"
+                    ? "border-primary bg-primary-dim text-primary"
                     : "border-border hover:border-primary/40"
                 }`}
               >

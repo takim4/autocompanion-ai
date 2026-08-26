@@ -45,7 +45,7 @@ function MechanicPanel() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <h1 className="flex items-center gap-2.5 text-2xl font-bold">
             <Wrench className="h-6 w-6 text-primary" /> Usta Paneli
           </h1>
           <p className="text-xs text-muted-foreground">
@@ -359,7 +359,7 @@ function ProfileEditor({ profile }: { profile: unknown }) {
             !form.city ||
             form.specialties.length === 0
           }
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-xl bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Kaydet
@@ -487,7 +487,7 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
       {!open && !already && (
         <button
           onClick={() => setOpen(true)}
-          className="mt-3 inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          className="mt-3 inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white"
         >
           <Send className="h-3 w-3" /> Teklif ver
         </button>
@@ -535,7 +535,7 @@ function IncomingRequestCard({ req }: { req: Record<string, unknown> }) {
             <button
               onClick={() => mut.mutate()}
               disabled={mut.isPending || message.trim().length < 2}
-              className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
             >
               {mut.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
               Gönder

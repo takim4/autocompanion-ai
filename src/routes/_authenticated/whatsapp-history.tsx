@@ -57,7 +57,12 @@ function WhatsappHistoryPage() {
   return (
     <div>
       <header className="mb-4">
-        <h1 className="text-2xl font-bold">WhatsApp Geçmişi</h1>
+        <h1 className="flex items-center gap-2.5 text-2xl font-bold">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-success/15 text-success">
+            <MessageCircle className="h-4.5 w-4.5" />
+          </span>
+          WhatsApp Geçmişi
+        </h1>
         <p className="text-xs text-muted-foreground">
           Ustalara gönderdiğin teşhis mesajları tarih ve usta bilgisiyle burada saklanır.
         </p>
