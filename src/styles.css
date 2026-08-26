@@ -93,12 +93,12 @@
   --accent: color-mix(in srgb, #1A1D20 68%, #8B95A0 32%);
   --accent-foreground: #F4F5F7;
 
-  --destructive: #A8503F;
+  --destructive: #C4362A;
   --destructive-foreground: #F4F5F7;
-  --success: #4C7A5E;
+  --success: #21875A;
   --success-foreground: #F4F5F7;
-  --warning: #9C7A34;
-  --warning-foreground: #F4F5F7;
+  --warning: #C6890F;
+  --warning-foreground: #1A1D20;
 
   --border: color-mix(in srgb, #1A1D20 13%, #F4F5F7);
   --input: color-mix(in srgb, #1A1D20 16%, #F4F5F7);
@@ -145,11 +145,11 @@
   --accent: color-mix(in srgb, #ECF0F3 66%, #8E98A5 34%);
   --accent-foreground: #1E232B;
 
-  --destructive: #D4897A;
-  --destructive-foreground: #1E232B;
-  --success: #86B69C;
-  --success-foreground: #10151C;
-  --warning: #CBAA6C;
+  --destructive: #E85B4C;
+  --destructive-foreground: #1A1006;
+  --success: #3FC088;
+  --success-foreground: #082014;
+  --warning: #E3AE3E;
   --warning-foreground: #1A1206;
 
   --border: color-mix(in srgb, #ECF0F3 14%, #1E232B);
