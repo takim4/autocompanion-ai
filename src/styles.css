@@ -5,21 +5,23 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * AutoSocial design tokens — "Midnight Telemetry"
- * Navy/signal-blue palette echoing the AutoSocial mark (car + network nodes).
- * Light: bg #F3F5F9, card #FFFFFF, text #0E1524
- * Dark:  bg #090E1A, card #121A2C, text #EDF1FA
- * Primary: signal blue #2A5EF5 (light) / #4C7FFF (dark)
- * Accent:  ember orange #FF7A45 — energy, CTAs, gamification
+ * AutoSocial design tokens — "Ink & Paper"
+ * A quiet, editorial, monochrome-first system. Every color below is the
+ * client's exact brand swatch or a color-mix() derived directly from it —
+ * no outside hues are introduced. Personality comes from typography,
+ * space and restraint rather than saturation.
+ *
+ * Light — Platin Beyazı #F4F5F7 · Mat Flask Gri #E2E5E9 · Antrasit #1A1D20 · Gümüş #8B95A0
+ * Dark  — Koyu Fırtına Grisi #1E232B · Mat Mavi-Gri #2A303A · Tebeşir Beyazı #ECF0F3 · Duman Grisi #8E98A5
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 8px);
-  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 6px);
-  --radius-2xl: calc(var(--radius) + 12px);
-  --radius-3xl: calc(var(--radius) + 18px);
+  --radius-xl: calc(var(--radius) + 5px);
+  --radius-2xl: calc(var(--radius) + 10px);
+  --radius-3xl: calc(var(--radius) + 16px);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -63,98 +65,113 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
 }
 
 :root {
-  --radius: 1rem;
-  /* AutoSocial Light */
-  --background: #F3F5F9;
-  --foreground: #0E1524;
-  --card: #FFFFFF;
-  --card-foreground: #0E1524;
-  --popover: #FFFFFF;
-  --popover-foreground: #0E1524;
-  --primary: #2A5EF5;
-  --primary-foreground: #FFFFFF;
-  --primary-dim: #E8EEFF;
-  --secondary: #E9EDF5;
-  --secondary-foreground: #0E1524;
-  --muted: #EDF0F6;
-  --muted-foreground: #66708A;
-  --accent: #FF7A45;
-  --accent-foreground: #1A0F08;
-  --destructive: #E5484D;
-  --destructive-foreground: #FFFFFF;
-  --success: #10B76F;
-  --success-foreground: #FFFFFF;
-  --warning: #F79009;
-  --warning-foreground: #1A1206;
-  --border: #E1E5EE;
-  --input: #DDE2ED;
-  --ring: #2A5EF5;
+  --radius: 0.875rem;
 
-  --chart-1: #2A5EF5;
-  --chart-2: #10B76F;
-  --chart-3: #FF7A45;
-  --chart-4: #E5484D;
-  --chart-5: #8B5CF6;
+  /* — Ink & Paper: Light (Platin) — */
+  --background: #F4F5F7;
+  --foreground: #1A1D20;
+  --card: #E2E5E9;
+  --card-foreground: #1A1D20;
+  --popover: #F4F5F7;
+  --popover-foreground: #1A1D20;
 
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #0E1524;
-  --sidebar-primary: #2A5EF5;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E9EDF5;
-  --sidebar-accent-foreground: #0E1524;
-  --sidebar-border: #E1E5EE;
-  --sidebar-ring: #2A5EF5;
+  --primary: #1A1D20;
+  --primary-foreground: #F4F5F7;
+  --primary-dim: color-mix(in srgb, #1A1D20 7%, #F4F5F7);
 
-  --shadow-color: 220 60% 30%;
+  --secondary: #E2E5E9;
+  --secondary-foreground: #1A1D20;
+  --muted: #E2E5E9;
+  --muted-foreground: #8B95A0;
+  --accent: color-mix(in srgb, #1A1D20 68%, #8B95A0 32%);
+  --accent-foreground: #F4F5F7;
+
+  --destructive: #A8503F;
+  --destructive-foreground: #F4F5F7;
+  --success: #4C7A5E;
+  --success-foreground: #F4F5F7;
+  --warning: #9C7A34;
+  --warning-foreground: #F4F5F7;
+
+  --border: color-mix(in srgb, #1A1D20 13%, #F4F5F7);
+  --input: color-mix(in srgb, #1A1D20 16%, #F4F5F7);
+  --ring: #1A1D20;
+
+  --chart-1: #1A1D20;
+  --chart-2: #4C7A5E;
+  --chart-3: #9C7A34;
+  --chart-4: #A8503F;
+  --chart-5: #8B95A0;
+
+  --sidebar: #E2E5E9;
+  --sidebar-foreground: #1A1D20;
+  --sidebar-primary: #1A1D20;
+  --sidebar-primary-foreground: #F4F5F7;
+  --sidebar-accent: #F4F5F7;
+  --sidebar-accent-foreground: #1A1D20;
+  --sidebar-border: color-mix(in srgb, #1A1D20 13%, #F4F5F7);
+  --sidebar-ring: #1A1D20;
+
+  --shadow-color: 220 10% 8%;
+  --ink: #1A1D20;
+  --ink-elevated: #23262b;
+  --paper: #F4F5F7;
 }
 
 .dark {
-  /* AutoSocial Dark */
-  --background: #090E1A;
-  --foreground: #EDF1FA;
-  --card: #121A2C;
-  --card-foreground: #EDF1FA;
-  --popover: #121A2C;
-  --popover-foreground: #EDF1FA;
-  --primary: #4C7FFF;
-  --primary-foreground: #060911;
-  --primary-dim: #17213A;
-  --secondary: #17213A;
-  --secondary-foreground: #EDF1FA;
-  --muted: #151E33;
-  --muted-foreground: #8993AD;
-  --accent: #FF8A5B;
-  --accent-foreground: #1A0F08;
-  --destructive: #F87171;
-  --destructive-foreground: #10151C;
-  --success: #34D399;
-  --success-foreground: #06140E;
-  --warning: #FBBF24;
+  /* — Ink & Paper: Dark (Fırtına) — */
+  --background: #1E232B;
+  --foreground: #ECF0F3;
+  --card: #2A303A;
+  --card-foreground: #ECF0F3;
+  --popover: #1E232B;
+  --popover-foreground: #ECF0F3;
+
+  --primary: #ECF0F3;
+  --primary-foreground: #1E232B;
+  --primary-dim: color-mix(in srgb, #ECF0F3 12%, #1E232B);
+
+  --secondary: #2A303A;
+  --secondary-foreground: #ECF0F3;
+  --muted: #2A303A;
+  --muted-foreground: #8E98A5;
+  --accent: color-mix(in srgb, #ECF0F3 66%, #8E98A5 34%);
+  --accent-foreground: #1E232B;
+
+  --destructive: #D4897A;
+  --destructive-foreground: #1E232B;
+  --success: #86B69C;
+  --success-foreground: #10151C;
+  --warning: #CBAA6C;
   --warning-foreground: #1A1206;
-  --border: #202C47;
-  --input: #202C47;
-  --ring: #4C7FFF;
 
-  --chart-1: #4C7FFF;
-  --chart-2: #34D399;
-  --chart-3: #FF8A5B;
-  --chart-4: #F87171;
-  --chart-5: #A78BFA;
+  --border: color-mix(in srgb, #ECF0F3 14%, #1E232B);
+  --input: color-mix(in srgb, #ECF0F3 18%, #1E232B);
+  --ring: #ECF0F3;
 
-  --sidebar: #0C1322;
-  --sidebar-foreground: #EDF1FA;
-  --sidebar-primary: #4C7FFF;
-  --sidebar-primary-foreground: #060911;
-  --sidebar-accent: #17213A;
-  --sidebar-accent-foreground: #EDF1FA;
-  --sidebar-border: #202C47;
-  --sidebar-ring: #4C7FFF;
+  --chart-1: #ECF0F3;
+  --chart-2: #86B69C;
+  --chart-3: #CBAA6C;
+  --chart-4: #D4897A;
+  --chart-5: #8E98A5;
 
-  --shadow-color: 220 80% 4%;
+  --sidebar: #2A303A;
+  --sidebar-foreground: #ECF0F3;
+  --sidebar-primary: #ECF0F3;
+  --sidebar-primary-foreground: #1E232B;
+  --sidebar-accent: #1E232B;
+  --sidebar-accent-foreground: #ECF0F3;
+  --sidebar-border: color-mix(in srgb, #ECF0F3 14%, #1E232B);
+  --sidebar-ring: #ECF0F3;
+
+  --shadow-color: 220 40% 2%;
+  --ink: #1A1D20;
+  --ink-elevated: #2A303A;
+  --paper: #ECF0F3;
 }
 
 @layer base {
@@ -169,9 +186,15 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--foreground);
+    color: var(--background);
   }
 
   /* Telefon/tablette uygulama hissi: kaydırınca sayfanın kendisi zıplamasın
@@ -196,26 +219,29 @@
 }
 
 @layer utilities {
-  /* Marka degradesi — logodaki lacivert → sinyal mavisi geçişi */
+  /* Always-ink surface — a fixed dark panel (anthracite → dark card-gray)
+     used for hero/feature surfaces, independent of light/dark theme.
+     Both stops are literal palette colors: Antrasit → Mat Mavi-Gri. */
   .bg-brand-gradient {
-    background-image: linear-gradient(135deg, #0B1730 0%, #16244A 45%, #2A5EF5 130%);
+    background-image: linear-gradient(150deg, #1A1D20 0%, var(--ink-elevated) 55%, #2A303A 130%);
+    color: #F4F5F7;
   }
 
   .glow-primary {
-    box-shadow: 0 8px 30px -8px hsl(var(--shadow-color) / 0.45);
+    box-shadow: 0 10px 28px -10px hsl(var(--shadow-color) / 0.35);
   }
 
   .text-gradient-brand {
-    background-image: linear-gradient(90deg, var(--primary), var(--accent));
+    background-image: linear-gradient(90deg, var(--foreground), var(--muted-foreground));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .glass-panel {
-    background: color-mix(in srgb, var(--card) 72%, transparent);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    background: color-mix(in srgb, var(--background) 78%, transparent);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
   }
 
   .card-interactive {
@@ -223,14 +249,28 @@
   }
   .card-interactive:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
-    box-shadow: 0 12px 28px -12px hsl(var(--shadow-color) / 0.35);
+    border-color: color-mix(in srgb, var(--foreground) 30%, var(--border));
+    box-shadow: 0 14px 30px -14px hsl(var(--shadow-color) / 0.28);
   }
 
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /* Faint paper grain — a whisper of texture behind hero/empty sections,
+     built only from ink/paper tones so it reads as material, not color. */
   .node-orbit-bg {
     background-image:
-      radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--primary) 18%, transparent) 0%, transparent 40%),
-      radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 35%),
-      radial-gradient(circle at 60% 80%, color-mix(in srgb, var(--primary) 12%, transparent) 0%, transparent 45%);
+      radial-gradient(circle at 18% 15%, color-mix(in srgb, var(--foreground) 6%, transparent) 0%, transparent 42%),
+      radial-gradient(circle at 88% 10%, color-mix(in srgb, var(--foreground) 4%, transparent) 0%, transparent 38%),
+      radial-gradient(circle at 55% 90%, color-mix(in srgb, var(--foreground) 5%, transparent) 0%, transparent 48%);
+  }
+
+  .rule-hairline {
+    border-color: var(--border);
   }
 }
