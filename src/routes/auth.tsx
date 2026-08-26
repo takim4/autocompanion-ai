@@ -201,7 +201,7 @@ function AuthPage() {
         <div className="node-orbit-bg pointer-events-none absolute inset-0" />
 
         <Link to="/" className="relative flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-white/10">
+          <span className="flex h-8 w-8 items-center justify-center overflow-hidden cut-sm bg-white/10">
             <img src={logoAsset.url} alt="" className="h-full w-full object-cover" />
           </span>
           <span className="font-display text-lg font-semibold">AutoSocial</span>
@@ -235,7 +235,7 @@ function AuthPage() {
       <div className="flex flex-col items-center justify-center bg-background px-6 py-14">
         <div className="w-full max-w-sm">
           <div className="mb-10 flex items-center gap-2.5 lg:hidden">
-            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-brand-gradient">
+            <span className="flex h-8 w-8 items-center justify-center overflow-hidden cut-sm bg-brand-gradient">
               <img src={logoAsset.url} alt="" className="h-full w-full object-cover" />
             </span>
             <span className="font-display text-lg font-semibold">AutoSocial</span>

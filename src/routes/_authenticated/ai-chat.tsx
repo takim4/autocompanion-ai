@@ -106,7 +106,7 @@ function AiChatPage() {
           </ul>
         </aside>
 
-        <section className="min-h-[60vh] rounded-2xl border border-border">
+        <section className="min-h-[60vh] cut border border-border">
           {activeId ? (
             <ChatWindow conversationId={activeId} />
           ) : (

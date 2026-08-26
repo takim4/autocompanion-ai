@@ -23,6 +23,7 @@ import { listAllAdRequests, reviewAdRequest } from "@/lib/ads.functions";
 import { getMyProfile, listVehicles } from "@/lib/garage.functions";
 import { getMyRoles, importMechanicsFromGoogleMaps } from "@/lib/mechanics.functions";
 import { SPECIALTIES, SPECIALTY_LABELS, TR_CITIES, type Specialty } from "@/lib/mechanic-data";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
@@ -30,12 +31,12 @@ export const Route = createFileRoute("/_authenticated/profile")({
 });
 
 const LINKS = [
-  { to: "/garage", icon: Car, title: "Garajım", desc: "Araçların, bakım geçmişi ve teşhis notları." },
-  { to: "/fact-check", icon: ShieldCheck, title: "Doğruluk Kontrolü", desc: "Bilgileri AI ile doğrula." },
-  { to: "/quotes", icon: FileText, title: "Tekliflerim", desc: "Ustalara gönderdiğin teklif istekleri." },
-  { to: "/whatsapp-history", icon: MessageCircle, title: "WhatsApp Geçmişi", desc: "Ustalara gönderdiğin mesajlar." },
-  { to: "/mechanic-panel", icon: Wrench, title: "Usta Paneli", desc: "İşletme profilini yönet." },
-  { to: "/advertise", icon: Megaphone, title: "Reklam Ver", desc: "İşletmeni AutoSocial'da tanıt." },
+  { to: "/garage", icon: Car, title: "Garajım", big: true },
+  { to: "/fact-check", icon: ShieldCheck, title: "Doğruluk Kontrolü", big: false },
+  { to: "/quotes", icon: FileText, title: "Tekliflerim", big: false },
+  { to: "/whatsapp-history", icon: MessageCircle, title: "WhatsApp Geçmişi", big: false },
+  { to: "/mechanic-panel", icon: Wrench, title: "Usta Paneli", big: false },
+  { to: "/advertise", icon: Megaphone, title: "Reklam Ver", big: false },
 ] as const;
 
 function ProfilePage() {
@@ -53,44 +54,57 @@ function ProfilePage() {
   const p = q.data;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <header className="flex items-center gap-5 border-b border-border pb-8">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <User className="h-7 w-7" />
+    <div>
+      <section className="cut node-orbit-bg relative overflow-hidden bg-brand-gradient p-8 sm:p-10">
+        <div className="relative flex flex-wrap items-end justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/10">
+              <User className="h-7 w-7" />
+            </div>
+            <div>
+              <p className="font-mono text-xs text-white/40">@{p?.username ?? "kullanıcı"}</p>
+              <h1 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
+                {p?.display_name ?? "Kullanıcı"}
+              </h1>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-display text-5xl font-medium leading-none">{p?.reputation ?? 0}</p>
+            <p className="mt-1 flex items-center justify-end gap-1 text-xs text-white/50">
+              <Award className="h-3.5 w-3.5" /> itibar
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display truncate text-2xl font-medium tracking-tight">
-            {p?.display_name ?? "Kullanıcı"}
-          </h1>
-          {p?.username && <p className="text-sm text-muted-foreground">@{p.username}</p>}
-        </div>
-        <div className="flex shrink-0 items-center gap-1.5 border-l border-border pl-5 text-sm">
-          <Award className="h-4 w-4 text-muted-foreground" />
-          <span className="font-display text-lg font-medium">{p?.reputation ?? 0}</span>
-        </div>
-      </header>
-      {p?.bio && <p className="mt-4 text-sm text-muted-foreground">{p.bio}</p>}
+        {p?.bio && <p className="relative mt-6 max-w-lg text-sm text-white/70">{p.bio}</p>}
+      </section>
 
-      <div className="mt-2">
+      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {LINKS.map((l) => (
-          <ProfileLink key={l.to} to={l.to} icon={<l.icon className="h-4 w-4" />} title={l.title} desc={l.desc} />
+          <Link
+            key={l.to}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            to={l.to as any}
+            className={cn(
+              "cut card-interactive group flex flex-col justify-between border border-border p-5",
+              l.big && "col-span-2 row-span-2 sm:col-span-2",
+            )}
+          >
+            <l.icon className={cn("text-muted-foreground/60", l.big ? "h-8 w-8" : "h-5 w-5")} strokeWidth={1.25} />
+            <div className="mt-6 flex items-end justify-between gap-2">
+              <p className={cn("font-display font-medium leading-tight", l.big ? "text-2xl" : "text-sm")}>{l.title}</p>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
+            </div>
+          </Link>
         ))}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 border-t border-border pt-6 text-center">
-        <div>
-          <p className="font-display text-2xl font-medium">{vehiclesQ.data?.length ?? 0}</p>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Araç</p>
-        </div>
-        <div>
-          <p className="font-display text-2xl font-medium">{p?.reputation ?? 0}</p>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">İtibar</p>
+        <div className="cut flex flex-col justify-between border border-dashed border-border p-5">
+          <span className="font-mono text-xs text-muted-foreground">Araç</span>
+          <p className="font-display text-4xl font-medium">{vehiclesQ.data?.length ?? 0}</p>
         </div>
       </div>
 
       {isAdmin && (
         <div className="mt-10 space-y-6 border-t border-border pt-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Yönetim</p>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">Yönetim</p>
           <AdminMechanicsImport />
           <AdminAdRequests />
         </div>
@@ -117,7 +131,7 @@ function AdminMechanicsImport() {
   });
 
   return (
-    <div className="rounded-xl border border-dashed border-border p-4">
+    <div className="cut border border-dashed border-border p-4">
       <h2 className="flex items-center gap-1.5 text-sm font-semibold">
         <MapPin className="h-4 w-4" /> Tavily ile Usta İçe Aktar
       </h2>
@@ -158,7 +172,7 @@ function AdminMechanicsImport() {
           {allSelected ? "Tümünü kaldır" : "Tüm Türkiye (81 il)"}
         </button>
       </div>
-      <div className="mt-1 max-h-32 overflow-y-auto rounded-lg border border-border p-2">
+      <div className="mt-1 max-h-32 overflow-y-auto border border-border p-2">
         <div className="flex flex-wrap gap-1">
           {TR_CITIES.map((c) => {
             const active = cities.includes(c);
@@ -167,9 +181,10 @@ function AdminMechanicsImport() {
                 key={c}
                 type="button"
                 onClick={() => toggleCity(c)}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"
-                }`}
+                className={cn(
+                  "px-2 py-0.5 text-[10px] font-medium",
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
+                )}
               >
                 {c}
               </button>
@@ -181,7 +196,7 @@ function AdminMechanicsImport() {
       <button
         onClick={() => mut.mutate()}
         disabled={mut.isPending || cities.length === 0}
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+        className="cut-sm mt-3 inline-flex items-center gap-1.5 bg-brand-gradient px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
       >
         {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         İçe aktar
@@ -213,7 +228,7 @@ function AdminAdRequests() {
   });
 
   return (
-    <div className="rounded-xl border border-dashed border-border p-4">
+    <div className="cut border border-dashed border-border p-4">
       <h2 className="flex items-center gap-1.5 text-sm font-semibold">
         <Megaphone className="h-4 w-4" /> Reklam Talepleri
       </h2>
@@ -277,34 +292,5 @@ function AdminAdRequests() {
         )}
       </ul>
     </div>
-  );
-}
-
-function ProfileLink({
-  to,
-  icon,
-  title,
-  desc,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <Link
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      to={to as any}
-      className="flex items-center gap-4 border-b border-border py-4 first:border-t hover:bg-secondary/40"
-    >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border">
-        {icon}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-muted-foreground">{desc}</p>
-      </div>
-      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-    </Link>
   );
 }

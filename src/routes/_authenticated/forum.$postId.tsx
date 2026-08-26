@@ -93,7 +93,7 @@ function ForumPostPage() {
       </header>
 
       {post.media_url && (
-        <div className="mt-6 overflow-hidden rounded-2xl bg-muted">
+        <div className="mt-6 overflow-hidden cut bg-muted">
           {post.media_type === "video" ? (
             <video src={post.media_url} controls className="w-full" />
           ) : (
