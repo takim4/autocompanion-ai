@@ -22,41 +22,39 @@ function SplashPage() {
   }, []);
 
   return (
-    <div className="node-orbit-bg relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-6">
       <motion.div
-        initial={{ scale: 0.8, opacity: 0, rotate: -8 }}
-        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="flex flex-col items-center gap-4"
+        className="flex flex-col items-center gap-5"
       >
-        <div className="h-28 w-28 overflow-hidden rounded-[1.75rem] bg-brand-gradient shadow-[0_20px_45px_-15px_hsl(var(--shadow-color)/0.65)]">
+        <div className="h-20 w-20 overflow-hidden rounded-2xl bg-brand-gradient shadow-[0_20px_45px_-18px_hsl(var(--shadow-color)/0.45)]">
           <img src={logoAsset.url} alt="AutoSocial" className="h-full w-full object-cover" />
         </div>
-        <motion.div
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-center"
-        >
-          <h1 className="font-display text-3xl font-bold tracking-tight">AutoSocial</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            AI teşhisi · topluluk onayı
-          </p>
-        </motion.div>
-        <motion.div
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-          className="mt-2 h-1 w-32 overflow-hidden rounded-full bg-muted"
+          transition={{ delay: 0.25 }}
+          className="font-display text-2xl font-medium tracking-tight"
         >
-          <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: "0%" }}
-            transition={{ duration: 1.1, ease: "easeInOut" }}
-            className="h-full w-full bg-brand-gradient"
-          />
-        </motion.div>
+          AutoSocial
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          AI teşhisi · topluluk onayı
+        </motion.p>
       </motion.div>
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 1.1, ease: "easeInOut", delay: 0.2 }}
+        className="absolute bottom-16 h-px w-32 origin-left bg-border"
+      />
       <Link
         to="/onboarding"
         className="absolute bottom-8 text-xs font-medium text-muted-foreground hover:text-foreground"

@@ -70,7 +70,7 @@ export function AdBanner({
     >
       <span className={`absolute right-3 top-3 ${AD_LABEL_CLASS}`}>Reklam</span>
       <div className="flex items-center gap-3 pr-14">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/15 text-accent">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary-dim text-foreground">
           {ad?.image_url ? (
             <img src={ad.image_url} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -148,7 +148,7 @@ export function NativeAdCard({
     <article className={`rounded-2xl border border-dashed border-border bg-card p-4 ${className}`}>
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-accent/15 text-accent">
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary-dim text-foreground">
             {ad?.image_url ? (
               <img src={ad.image_url} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -166,14 +166,14 @@ export function NativeAdCard({
           href={ad.target_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-block rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          className="mt-3 inline-block rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold"
         >
           {shown.cta}
         </a>
       ) : (
         <button
           onClick={() => notifyPlaceholder(title)}
-          className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          className="mt-3 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold"
         >
           {shown.cta}
         </button>
@@ -209,14 +209,14 @@ export function AdVideoTile({ className = "" }: { className?: string }) {
           href={ad.target_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 rounded-md bg-primary px-3 py-1 text-[11px] font-medium text-primary-foreground"
+          className="mt-1 rounded-full bg-brand-gradient px-3 py-1 text-[11px] font-semibold"
         >
           {ad.cta_label}
         </a>
       ) : (
         <button
           onClick={() => notifyPlaceholder("Reklamınız burada görünebilir")}
-          className="mt-1 rounded-md bg-primary px-3 py-1 text-[11px] font-medium text-primary-foreground"
+          className="mt-1 rounded-full bg-brand-gradient px-3 py-1 text-[11px] font-semibold"
         >
           İncele
         </button>

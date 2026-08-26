@@ -70,7 +70,7 @@ function MechanicProfilePage() {
         title="İşletme bulunamadı"
         description="Bu işletme kaldırılmış olabilir."
         action={
-          <Link to="/forum" className="text-sm font-medium text-primary hover:underline">
+          <Link to="/forum" className="text-sm font-medium underline">
             Foruma dön
           </Link>
         }
@@ -82,18 +82,18 @@ function MechanicProfilePage() {
   const cleanWa = (m.whatsapp ?? m.phone).replace(/[^\d+]/g, "").replace(/^\+/, "");
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-2xl">
       <Link
         to="/forum"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="mb-6 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> Geri
+        <ArrowLeft className="h-3.5 w-3.5" /> Geri
       </Link>
 
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h1 className="text-xl font-bold">{m.business_name}</h1>
+      <header className="border-b border-border pb-6">
+        <h1 className="font-display text-3xl font-medium tracking-tight">{m.business_name}</h1>
         {m.owner_name && <p className="text-sm text-muted-foreground">{m.owner_name}</p>}
-        <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
             {m.district ? `${m.district}, ` : ""}
@@ -101,29 +101,24 @@ function MechanicProfilePage() {
           </span>
           {m.rating_count > 0 && (
             <span className="inline-flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+              <Star className="h-3.5 w-3.5 fill-current" />
               {Number(m.avg_rating).toFixed(1)} ({m.rating_count} değerlendirme)
             </span>
           )}
         </div>
-        <p className="mt-2 text-sm text-muted-foreground">{m.address}</p>
+        <p className="mt-3 text-sm text-muted-foreground">{m.address}</p>
         {m.bio && <p className="mt-3 text-sm">{m.bio}</p>}
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {m.specialties.map((s) => (
-            <span
-              key={s}
-              className="rounded-full bg-accent/30 px-2 py-0.5 text-[11px] text-accent-foreground"
-            >
-              {SPECIALTY_LABELS[s as Specialty] ?? s}
-            </span>
+            <span key={s}>#{SPECIALTY_LABELS[s as Specialty] ?? s}</span>
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           <a
             href={`tel:${cleanPhone}`}
-            className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-secondary/80"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold hover:border-foreground"
           >
             <Phone className="h-3.5 w-3.5" /> Ara
           </a>
@@ -131,35 +126,28 @@ function MechanicProfilePage() {
             href={`https://wa.me/${cleanWa}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold hover:border-foreground"
           >
             <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
           </a>
+          <QuoteBox mechanicId={m.id} />
         </div>
-      </div>
+      </header>
 
-      <QuoteBox mechanicId={m.id} />
-
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <h2 className="mb-3 text-sm font-semibold">Değerlendirmeni bırak</h2>
-        <ReviewForm
-          mechanicId={m.id}
-          myReview={myReviewQ.data ?? null}
-          onSaved={invalidateReviews}
-        />
+      <section className="border-b border-border py-6">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Değerlendirmeni bırak</h2>
+        <ReviewForm mechanicId={m.id} myReview={myReviewQ.data ?? null} onSaved={invalidateReviews} />
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <h2 className="mb-3 text-sm font-semibold">
+      <section className="py-6">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           Değerlendirmeler ({reviewsQ.data?.length ?? 0})
         </h2>
         {reviewsQ.isLoading && <LoadingState label="Yükleniyor…" />}
         {reviewsQ.data && reviewsQ.data.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Henüz değerlendirme yok — ilkini sen bırak.
-          </p>
+          <p className="text-sm text-muted-foreground">Henüz değerlendirme yok — ilkini sen bırak.</p>
         )}
-        <ul className="space-y-3">
+        <ul className="divide-y divide-border">
           {(reviewsQ.data ?? []).map(
             (r: {
               id: string;
@@ -169,7 +157,7 @@ function MechanicProfilePage() {
               comment: string | null;
               created_at: string;
             }) => (
-              <li key={r.id} className="rounded-lg bg-muted/50 p-3">
+              <li key={r.id} className="py-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-muted text-sm">
@@ -183,10 +171,7 @@ function MechanicProfilePage() {
                   </div>
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <Star
-                        key={n}
-                        className={`h-3.5 w-3.5 ${n <= r.rating ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground/30"}`}
-                      />
+                      <Star key={n} className={`h-3.5 w-3.5 ${n <= r.rating ? "fill-current" : "text-muted-foreground/30"}`} />
                     ))}
                   </div>
                 </div>
@@ -239,13 +224,11 @@ function ReviewForm({
   });
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} onClick={() => setRating(n)} aria-label={`${n} yıldız`} className="p-0.5">
-            <Star
-              className={`h-6 w-6 ${n <= rating ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground hover:text-yellow-500"}`}
-            />
+            <Star className={`h-6 w-6 ${n <= rating ? "fill-current" : "text-muted-foreground"}`} />
           </button>
         ))}
       </div>
@@ -255,14 +238,14 @@ function ReviewForm({
         rows={3}
         maxLength={2000}
         placeholder="Deneyimini paylaş (isteğe bağlı)…"
-        className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+        className="w-full resize-none border-b border-border bg-transparent py-1.5 text-sm outline-none focus:border-foreground"
       />
       <div className="flex justify-end gap-2">
         {myReview && (
           <button
             onClick={() => deleteMut.mutate()}
             disabled={deleteMut.isPending}
-            className="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-foreground disabled:opacity-50"
           >
             <Trash2 className="h-3.5 w-3.5" /> Sil
           </button>
@@ -270,7 +253,7 @@ function ReviewForm({
         <button
           onClick={() => mut.mutate()}
           disabled={mut.isPending || rating === 0}
-          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           {myReview ? "Güncelle" : "Gönder"}
@@ -305,7 +288,7 @@ function QuoteBox({ mechanicId }: { mechanicId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3.5 py-2 text-xs font-semibold text-white"
+        className="inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3.5 py-1.5 text-xs font-semibold"
       >
         <Send className="h-3.5 w-3.5" /> Teklif iste
       </button>
@@ -313,27 +296,24 @@ function QuoteBox({ mechanicId }: { mechanicId: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <label className="mb-1 block text-xs font-medium">Sorun özeti</label>
+    <div className="w-full border-t border-border pt-4">
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sorun özeti</label>
       <textarea
         value={issue}
         onChange={(e) => setIssue(e.target.value)}
         rows={4}
         maxLength={2000}
         placeholder="Aracında ne sorun var, ne zamandır devam ediyor…"
-        className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+        className="w-full resize-none border-b border-border bg-transparent py-1.5 text-sm outline-none focus:border-foreground"
       />
-      <div className="mt-2 flex justify-end gap-2">
-        <button
-          onClick={() => setOpen(false)}
-          className="rounded-md border border-input bg-background px-3 py-1.5 text-xs hover:bg-accent"
-        >
+      <div className="mt-3 flex justify-end gap-2">
+        <button onClick={() => setOpen(false)} className="rounded-full border border-border px-3 py-1.5 text-xs hover:border-foreground">
           İptal
         </button>
         <button
           onClick={() => mut.mutate()}
           disabled={mut.isPending || issue.trim().length < 5}
-          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
         >
           {mut.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Gönder

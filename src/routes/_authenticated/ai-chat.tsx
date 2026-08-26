@@ -63,42 +63,35 @@ function AiChatPage() {
 
   return (
     <div>
-      <header className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2.5 text-2xl font-bold">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-white">
-              <Sparkles className="h-4.5 w-4.5" />
-            </span>
-            Destek Asistanı
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Sorununu anlat, ön çözüm alalım; gerekirse yakınındaki doğrulanmış bir ustaya
-            yönlendirelim.
-          </p>
-        </div>
+      <header className="mb-6 border-b border-border pb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">AI Ajanı</p>
+        <h1 className="font-display text-3xl font-medium tracking-tight">Destek Asistanı</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Sorununu anlat, ön çözüm alalım; gerekirse yakınındaki doğrulanmış bir ustaya yönlendirelim.
+        </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-[240px_1fr]">
-        <aside className="space-y-2">
+      <div className="grid gap-6 md:grid-cols-[220px_1fr]">
+        <aside className="space-y-4">
           <NewChatButton
             vehicles={vehiclesQ.data ?? []}
             onCreate={(vid) => createMut.mutate(vid)}
             loading={createMut.isPending}
           />
-          <ul className="space-y-1">
+          <ul className="space-y-0.5">
             {(convQ.data ?? []).map((c) => (
               <li key={c.id}>
                 <button
                   onClick={() => setActiveId(c.id)}
-                  className={`group flex w-full items-center justify-between rounded-xl border px-2.5 py-2 text-left text-xs font-medium transition-colors ${
+                  className={`group flex w-full items-center justify-between gap-2 border-l-2 px-3 py-2 text-left text-xs font-medium transition-colors ${
                     activeId === c.id
-                      ? "border-transparent bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)]"
-                      : "border-border bg-card hover:bg-secondary"
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
                   }`}
                 >
                   <span className="truncate">{c.title}</span>
                   <Trash2
-                    className="ml-2 h-3.5 w-3.5 shrink-0 opacity-0 hover:text-destructive group-hover:opacity-100"
+                    className="h-3.5 w-3.5 shrink-0 opacity-0 hover:text-destructive group-hover:opacity-100"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (confirm("Sohbet silinsin mi?")) delMut.mutate(c.id);
@@ -108,17 +101,20 @@ function AiChatPage() {
               </li>
             ))}
             {convQ.data && convQ.data.length === 0 && (
-              <li className="text-xs text-muted-foreground">Henüz sohbet yok.</li>
+              <li className="px-3 text-xs text-muted-foreground">Henüz sohbet yok.</li>
             )}
           </ul>
         </aside>
 
-        <section className="min-h-[60vh] rounded-2xl border border-border bg-card">
+        <section className="min-h-[60vh] rounded-2xl border border-border">
           {activeId ? (
             <ChatWindow conversationId={activeId} />
           ) : (
-            <div className="flex h-full min-h-[50vh] items-center justify-center p-6 text-center text-sm text-muted-foreground">
-              Sol menüden bir sohbet seç ya da <br /> yeni bir teşhis sohbeti başlat.
+            <div className="flex h-full min-h-[50vh] flex-col items-center justify-center gap-3 p-6 text-center">
+              <Sparkles className="h-6 w-6 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Sol menüden bir sohbet seç ya da yeni bir teşhis sohbeti başlat.
+              </p>
             </div>
           )}
         </section>
@@ -142,23 +138,19 @@ function NewChatButton({
       <button
         disabled={loading}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex w-full items-center justify-center gap-1 rounded-xl bg-brand-gradient px-3 py-2 text-xs font-semibold text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-brand-gradient px-3 py-2 text-xs font-semibold disabled:opacity-50"
       >
-        {loading ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <Plus className="h-3.5 w-3.5" />
-        )}
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
         Yeni sohbet
       </button>
       {open && (
-        <div className="absolute left-0 right-0 top-full z-10 mt-1 rounded-md border border-border bg-popover p-1 shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-10 mt-1 rounded-xl border border-border bg-popover p-1 shadow-xl">
           <button
             onClick={() => {
               onCreate(null);
               setOpen(false);
             }}
-            className="w-full rounded px-2 py-1.5 text-left text-xs hover:bg-accent"
+            className="w-full rounded-lg px-2.5 py-1.5 text-left text-xs hover:bg-secondary"
           >
             Genel sohbet (araç seçme)
           </button>
@@ -169,7 +161,7 @@ function NewChatButton({
                 onCreate(v.id);
                 setOpen(false);
               }}
-              className="w-full rounded px-2 py-1.5 text-left text-xs hover:bg-accent"
+              className="w-full rounded-lg px-2.5 py-1.5 text-left text-xs hover:bg-secondary"
             >
               {v.year} {v.brand} {v.model}
             </button>
@@ -219,9 +211,9 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
 
   return (
     <div className="flex h-[calc(100dvh-14rem)] min-h-[420px] flex-col md:h-[70vh]">
-      <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
         {messages.length === 0 && !sendMut.isPending && (
-          <div className="rounded-md border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
             Aracının belirtisini, hata koduyla birlikte veya olabildiğince detaylı yaz. Örn: "Soğuk
             çalıştırmada 1500 devirde titreşim, MIL yanıyor, P0301."
           </div>
@@ -240,7 +232,7 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
                 return (
                   <>
                     {status && (
-                      <span className="ml-9 mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      <span className="ml-9 mt-1 inline-block rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                         {SUPPORT_STATUS_LABELS[status]}
                       </span>
                     )}
@@ -276,16 +268,16 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
           }}
           rows={2}
           placeholder="Sorunu yaz…"
-          className="min-h-[44px] flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="min-h-[44px] flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none placeholder:text-muted-foreground"
           disabled={sendMut.isPending}
         />
         <button
           type="submit"
           disabled={sendMut.isPending || !input.trim()}
-          className="inline-flex h-11 items-center justify-center gap-1 rounded-xl bg-brand-gradient px-4 text-sm font-semibold text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-50"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-gradient disabled:opacity-50"
+          aria-label="Gönder"
         >
           <Send className="h-4 w-4" />
-          Gönder
         </button>
       </form>
     </div>
@@ -295,23 +287,23 @@ function ChatWindow({ conversationId }: { conversationId: string }) {
 function MessageBubble({ role, content }: { role: string; content: string }) {
   const isUser = role === "user";
   return (
-    <div className={`flex gap-2 ${isUser ? "flex-row-reverse" : ""}`}>
+    <div className={`flex gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
       <div
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          isUser ? "bg-primary-dim text-primary" : "bg-brand-gradient text-white"
+        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          isUser ? "bg-primary-dim text-foreground" : "bg-brand-gradient"
         }`}
       >
-        {isUser ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+        {isUser ? <User className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
       </div>
       <div
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${
-          isUser ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm border border-border bg-card text-foreground"
+        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+          isUser ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm border border-border bg-card"
         }`}
       >
         {isUser ? (
           <p className="whitespace-pre-wrap">{content}</p>
         ) : (
-          <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-headings:my-2">
+          <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-headings:my-2 prose-headings:font-display">
             <ReactMarkdown>{content}</ReactMarkdown>
           </div>
         )}

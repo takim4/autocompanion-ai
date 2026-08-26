@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { CheckCircle2, KeyRound, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,22 +39,26 @@ function ForgotPasswordPage() {
   }
 
   return (
-    <div className="node-orbit-bg flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl shadow-black/[0.03]">
-        <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-dim text-primary">
-          <KeyRound className="h-5 w-5" />
-        </div>
-        <h1 className="mt-3 font-display text-2xl font-bold">Şifreni sıfırla</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
+      <div className="w-full max-w-sm">
+        <Link to="/auth" className="mb-8 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-3.5 w-3.5" /> Girişe dön
+        </Link>
+
+        <h1 className="font-display text-3xl font-medium tracking-tight">Şifreni sıfırla</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           E-posta adresini gir, sıfırlama linki gönderelim.
         </p>
+
         {sent ? (
-          <div className="mt-6 flex items-start gap-3 rounded-xl bg-success/10 p-4 text-sm text-success-foreground">
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
-            E-posta kutunu kontrol et. Link 1 saat geçerli.
+          <div className="mt-8 flex items-start gap-3 border-t border-border pt-6">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-foreground" />
+            <p className="text-sm text-muted-foreground">
+              E-posta kutunu kontrol et. Link 1 saat geçerli.
+            </p>
           </div>
         ) : (
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-4 border-t border-border pt-6">
             <div className="space-y-1.5">
               <Label htmlFor="email">E-posta</Label>
               <Input id="email" type="email" {...form.register("email")} />
@@ -68,9 +72,6 @@ function ForgotPasswordPage() {
             </Button>
           </form>
         )}
-        <Link to="/auth" className="mt-4 block text-center text-sm font-medium text-muted-foreground hover:text-foreground">
-          ← Girişe dön
-        </Link>
       </div>
     </div>
   );

@@ -11,7 +11,6 @@ import {
   MessageCircle,
   Search,
   Send,
-  TrendingUp,
   X,
 } from "lucide-react";
 import { AdBanner, AdSquare, NativeAdCard } from "@/components/ads/ad-slot";
@@ -75,34 +74,49 @@ function ForumPage() {
   }, [allPosts, query]);
 
   const candidates = candidatesQ.data ?? [];
+  const [featured, ...rest] = posts;
 
   return (
-    <div className="-mx-4 -my-6 grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
-      <div className="min-w-0 space-y-4">
-        {/* Arama (Search) */}
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="-mx-4 -my-6 grid gap-x-10 p-4 md:grid-cols-[minmax(0,1fr)_240px]">
+      <div className="min-w-0">
+        <header className="mb-6 flex items-baseline justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sayı 01</p>
+            <h1 className="font-display text-3xl font-medium tracking-tight">Topluluk Forumu</h1>
+          </div>
+          <div className="relative hidden w-56 sm:block">
+            <Search className="pointer-events-none absolute left-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ara…"
+              className="w-full border-b border-border bg-transparent py-1.5 pl-5 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground"
+            />
+          </div>
+        </header>
+
+        <div className="sm:hidden mb-5 relative">
+          <Search className="pointer-events-none absolute left-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Forumda ara — konu, etiket, marka…"
-            className="w-full rounded-xl border border-input bg-card py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            placeholder="Forumda ara…"
+            className="w-full border-b border-border bg-transparent py-2 pl-5 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground"
           />
         </div>
 
-        {/* Takip Edilenler — mobilde yatay şerit, md+ ekranda sağ panelde */}
         {candidates.length > 0 && (
-          <div className="-mb-1 flex gap-3 overflow-x-auto pb-1 md:hidden">
+          <div className="-mb-1 mb-5 flex gap-4 overflow-x-auto pb-1 md:hidden">
             {candidates.map((u) => (
               <Link
                 key={u.id}
                 to="/u/$userId"
                 params={{ userId: u.id }}
-                className="flex shrink-0 flex-col items-center gap-1"
+                className="flex shrink-0 flex-col items-center gap-1.5"
               >
                 <span
-                  className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-lg ring-2 ${
-                    u.is_following ? "bg-primary/15 ring-primary" : "bg-muted ring-transparent"
+                  className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border text-lg ${
+                    u.is_following ? "border-foreground" : "border-border"
                   }`}
                 >
                   {u.avatar_url ? (
@@ -119,19 +133,15 @@ function ForumPage() {
           </div>
         )}
 
-        {/* Popüler / Trend Konular */}
-        <section>
-          <h3 className="mb-2 flex items-center gap-1.5 font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <TrendingUp className="h-3.5 w-3.5 text-accent" /> Popüler / Trend Konular
-          </h3>
+        <section className="mb-6">
           <div className="flex gap-2 overflow-x-auto pb-1">
             {TREND_TOPICS.map((t) => (
               <button
                 key={t.tag}
                 onClick={() => setQuery(t.tag)}
-                className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary hover:text-primary"
+                className="shrink-0 rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
               >
-                #{t.tag} <span className="text-muted-foreground">· {t.count}</span>
+                #{t.tag} <span className="text-muted-foreground/70">· {t.count}</span>
               </button>
             ))}
           </div>
@@ -139,62 +149,63 @@ function ForumPage() {
 
         <ComposePost />
 
-        <AdBanner />
+        <div className="my-6">
+          <AdBanner />
+        </div>
 
-        {/* Forum Kısmı */}
-        <section className="space-y-3">
-          {postsQ.isLoading && <LoadingState label="Gönderiler yükleniyor…" />}
-          {postsQ.isError && (
-            <p className="py-6 text-center text-sm text-destructive">
-              {postsQ.error instanceof Error ? postsQ.error.message : "Gönderiler yüklenemedi."}
-            </p>
-          )}
-          {posts.map((post, i) => (
+        {postsQ.isLoading && <LoadingState label="Gönderiler yükleniyor…" />}
+        {postsQ.isError && (
+          <p className="py-6 text-center text-sm text-destructive">
+            {postsQ.error instanceof Error ? postsQ.error.message : "Gönderiler yüklenemedi."}
+          </p>
+        )}
+
+        {featured && !query.trim() && (
+          <FeaturedPostCard post={featured} />
+        )}
+
+        <section className="mt-2 divide-y divide-border">
+          {(query.trim() ? posts : rest).map((post, i) => (
             <Fragment key={post.id}>
-              <ForumPostCard post={post} />
-              {i === 1 && <NativeAdCard />}
+              <ForumPostRowItem post={post} />
+              {i === 1 && (
+                <div className="py-5">
+                  <NativeAdCard />
+                </div>
+              )}
             </Fragment>
           ))}
-          {postsQ.data && posts.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              {query
-                ? `"${query}" için sonuç bulunamadı.`
-                : "Henüz gönderi yok — ilkini sen paylaş."}
-            </p>
-          )}
         </section>
+
+        {postsQ.data && posts.length === 0 && (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            {query ? `"${query}" için sonuç bulunamadı.` : "Henüz gönderi yok — ilkini sen paylaş."}
+          </p>
+        )}
       </div>
 
-      {/* Takip Edilenler */}
-      <aside className="hidden space-y-3 md:block">
-        <div className="rounded-2xl border border-border bg-card p-3">
-          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <aside className="hidden space-y-6 md:block">
+        <div>
+          <h3 className="mb-3 border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Takip Edilenler
           </h3>
           {candidatesQ.isLoading && (
-            <p className="px-1 text-xs text-muted-foreground">Yükleniyor…</p>
+            <p className="text-xs text-muted-foreground">Yükleniyor…</p>
           )}
           {candidates.length === 0 && !candidatesQ.isLoading && (
-            <p className="px-1 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Henüz takip edebileceğin başka kullanıcı yok.
             </p>
           )}
-          <ul className="space-y-1">
+          <ul className="space-y-3">
             {candidates.map((u) => (
-              <li
-                key={u.id}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-accent/30"
-              >
+              <li key={u.id} className="flex items-center gap-2.5">
                 <Link
                   to="/u/$userId"
                   params={{ userId: u.id }}
-                  className="flex min-w-0 flex-1 items-center gap-2 text-sm"
+                  className="flex min-w-0 flex-1 items-center gap-2.5 text-sm"
                 >
-                  <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-base ${
-                      u.is_following ? "bg-primary/15" : "bg-muted"
-                    }`}
-                  >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
                     {u.avatar_url ? (
                       <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -207,8 +218,8 @@ function ForumPage() {
                 </Link>
                 <button
                   onClick={() => followMut.mutate(u.id)}
-                  className={`shrink-0 text-[11px] font-medium ${
-                    u.is_following ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  className={`shrink-0 text-[11px] font-semibold ${
+                    u.is_following ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {u.is_following ? "Takipte" : "Takip Et"}
@@ -273,87 +284,104 @@ function ComposePost() {
   };
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-3">
-      <div className="flex items-center gap-2">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+    <section className="border-y border-border py-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-base">
           🙂
         </div>
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !mut.isPending) {
-              e.preventDefault();
-              if (text.trim()) mut.mutate();
-            }
-          }}
-          placeholder="Bir soru sor ya da deneyimini paylaş…"
-          className="flex-1 rounded-full border border-input bg-background px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
-        <button
-          onClick={() => mut.mutate()}
-          disabled={!text.trim() || mut.isPending}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white shadow-[0_6px_16px_-6px_hsl(var(--shadow-color)/0.6)] disabled:opacity-40"
-          aria-label="Paylaş"
-        >
-          {mut.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </button>
-      </div>
+        <div className="flex-1">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={1}
+            placeholder="Bir soru sor ya da deneyimini paylaş…"
+            className="w-full resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground"
+          />
 
-      {preview && (
-        <div className="relative ml-11 mt-2 inline-block">
-          {fileKind === "video" ? (
-            <video src={preview} className="h-24 rounded-lg" muted controls />
-          ) : (
-            <img src={preview} alt="Ek" className="h-24 rounded-lg object-cover" />
+          {preview && (
+            <div className="relative mt-2 inline-block">
+              {fileKind === "video" ? (
+                <video src={preview} className="h-24 rounded-lg" muted controls />
+              ) : (
+                <img src={preview} alt="Ek" className="h-24 rounded-lg object-cover" />
+              )}
+              <button
+                onClick={clearAttachment}
+                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background"
+                aria-label="Eki kaldır"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
           )}
-          <button
-            onClick={clearAttachment}
-            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background"
-            aria-label="Eki kaldır"
-          >
-            <X className="h-3 w-3" />
-          </button>
+
+          <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
+            <div className="flex gap-3 text-xs text-muted-foreground">
+              <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={attach("photo")} />
+              <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={attach("video")} />
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                className="flex items-center gap-1 hover:text-foreground"
+              >
+                <ImagePlus className="h-3.5 w-3.5" /> Fotoğraf
+              </button>
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                className="flex items-center gap-1 hover:text-foreground"
+              >
+                <Camera className="h-3.5 w-3.5" /> Video
+              </button>
+            </div>
+            <button
+              onClick={() => mut.mutate()}
+              disabled={!text.trim() || mut.isPending}
+              className="flex items-center gap-1.5 rounded-full bg-brand-gradient px-3.5 py-1.5 text-xs font-semibold disabled:opacity-40"
+            >
+              {mut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              Paylaş
+            </button>
+          </div>
         </div>
-      )}
-
-      <div className="mt-2 flex gap-2 pl-11 text-xs text-muted-foreground">
-        <input
-          ref={photoInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={attach("photo")}
-        />
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={attach("video")}
-        />
-        <button
-          onClick={() => photoInputRef.current?.click()}
-          className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-accent/30 hover:text-foreground"
-        >
-          <ImagePlus className="h-3.5 w-3.5" /> Fotoğraf
-        </button>
-        <button
-          onClick={() => videoInputRef.current?.click()}
-          className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-accent/30 hover:text-foreground"
-        >
-          <Camera className="h-3.5 w-3.5" /> Video
-        </button>
       </div>
     </section>
   );
 }
 
-function ForumPostCard({ post }: { post: ForumPostRow }) {
+function FeaturedPostCard({ post }: { post: ForumPostRow }) {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate({ to: "/forum/$postId", params: { postId: post.id } })}
+      className="group mt-6 block w-full text-left"
+    >
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Öne çıkan</p>
+      {post.media_url && post.media_type === "image" && (
+        <div className="mb-4 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted">
+          <img
+            src={post.media_url}
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+        </div>
+      )}
+      <h2 className="font-display text-2xl font-medium leading-snug tracking-tight group-hover:underline">
+        {post.title}
+      </h2>
+      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{post.body}</p>
+      <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+        <AuthorAvatar avatar={post.author_avatar} small />
+        <span>{post.author_name}</span>
+        <span>·</span>
+        <span>{new Date(post.created_at).toLocaleDateString("tr-TR")}</span>
+        <span className="ml-auto flex items-center gap-1">
+          <Heart className={`h-3.5 w-3.5 ${post.liked_by_me ? "fill-current text-foreground" : ""}`} /> {post.like_count}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function ForumPostRowItem({ post }: { post: ForumPostRow }) {
   const qc = useQueryClient();
   const toggleFn = useServerFn(toggleForumPostLike);
   const mut = useMutation({
@@ -363,11 +391,7 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
       qc.setQueryData<ForumPostRow[]>(["forum-posts"], (old) =>
         (old ?? []).map((p) =>
           p.id === post.id
-            ? {
-                ...p,
-                liked_by_me: !p.liked_by_me,
-                like_count: p.like_count + (p.liked_by_me ? -1 : 1),
-              }
+            ? { ...p, liked_by_me: !p.liked_by_me, like_count: p.like_count + (p.liked_by_me ? -1 : 1) }
             : p,
         ),
       );
@@ -378,88 +402,66 @@ function ForumPostCard({ post }: { post: ForumPostRow }) {
   const navigate = useNavigate();
 
   return (
-    <div
+    <article
       role="link"
       tabIndex={0}
       onClick={() => navigate({ to: "/forum/$postId", params: { postId: post.id } })}
       onKeyDown={(e) => {
         if (e.key === "Enter") navigate({ to: "/forum/$postId", params: { postId: post.id } });
       }}
-      className="card-interactive cursor-pointer rounded-2xl border border-border bg-card p-4"
+      className="group flex cursor-pointer gap-4 py-5"
     >
-      <div className="flex items-center gap-2">
-        {post.user_id ? (
-          <Link
-            to="/u/$userId"
-            params={{ userId: post.user_id }}
-            onClick={(e) => e.stopPropagation()}
-            className="flex min-w-0 flex-1 items-center gap-2 hover:underline"
-          >
-            <AuthorAvatar avatar={post.author_avatar} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{post.author_name}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {new Date(post.created_at).toLocaleDateString("tr-TR")}
-              </p>
-            </div>
-          </Link>
-        ) : (
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <AuthorAvatar avatar={post.author_avatar} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{post.author_name}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {new Date(post.created_at).toLocaleDateString("tr-TR")}
-              </p>
-            </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <AuthorAvatar avatar={post.author_avatar} small />
+          <span className="font-medium text-foreground">{post.author_name}</span>
+          <span>·</span>
+          <span>{new Date(post.created_at).toLocaleDateString("tr-TR")}</span>
+        </div>
+        <h3 className="mt-1.5 font-display text-lg font-medium leading-snug tracking-tight group-hover:underline">
+          {post.title}
+        </h3>
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.body}</p>
+        {post.tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+            {post.tags.map((t) => (
+              <span key={t}>#{t}</span>
+            ))}
           </div>
         )}
+        <div className="mt-2.5 flex items-center gap-4 text-xs text-muted-foreground">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              mut.mutate();
+            }}
+            className={`flex items-center gap-1 ${post.liked_by_me ? "text-foreground" : "hover:text-foreground"}`}
+          >
+            <Heart className={`h-3.5 w-3.5 ${post.liked_by_me ? "fill-current" : ""}`} /> {post.like_count}
+          </button>
+          <span className="flex items-center gap-1">
+            <MessageCircle className="h-3.5 w-3.5" /> {post.comment_count}
+          </span>
+        </div>
       </div>
-      <h3 className="mt-3 text-base font-semibold">{post.title}</h3>
-      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.body}</p>
       {post.media_url && post.media_type === "image" && (
-        <img src={post.media_url} alt="" className="mt-2 max-h-56 w-full rounded-lg object-cover" />
-      )}
-      {post.tags.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {post.tags.map((t) => (
-            <span
-              key={t}
-              className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-            >
-              #{t}
-            </span>
-          ))}
+        <div className="hidden h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-muted sm:block">
+          <img src={post.media_url} alt="" className="h-full w-full object-cover" />
         </div>
       )}
-      <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            mut.mutate();
-          }}
-          className={`flex items-center gap-1 ${post.liked_by_me ? "text-accent" : ""}`}
-        >
-          <Heart className={`h-3.5 w-3.5 ${post.liked_by_me ? "fill-current" : ""}`} />{" "}
-          {post.like_count}
-        </button>
-        <span className="flex items-center gap-1">
-          <MessageCircle className="h-3.5 w-3.5" /> {post.comment_count}
-        </span>
-      </div>
-    </div>
+    </article>
   );
 }
 
-function AuthorAvatar({ avatar }: { avatar: string }) {
+function AuthorAvatar({ avatar, small }: { avatar: string; small?: boolean }) {
   return (
-    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-base">
-      {avatar?.startsWith("http") ? (
-        <img src={avatar} alt="" className="h-full w-full object-cover" />
-      ) : (
-        avatar
-      )}
+    <span
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted ${
+        small ? "h-5 w-5 text-xs" : "h-8 w-8 text-base"
+      }`}
+    >
+      {avatar?.startsWith("http") ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : avatar}
     </span>
   );
 }

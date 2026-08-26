@@ -55,15 +55,13 @@ function WhatsappHistoryPage() {
   });
 
   return (
-    <div>
-      <header className="mb-4">
-        <h1 className="flex items-center gap-2.5 text-2xl font-bold">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-success/15 text-success">
-            <MessageCircle className="h-4.5 w-4.5" />
-          </span>
-          WhatsApp Geçmişi
-        </h1>
-        <p className="text-xs text-muted-foreground">
+    <div className="mx-auto max-w-2xl">
+      <header className="mb-6 border-b border-border pb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          {q.data?.length ?? 0} kayıtlı mesaj
+        </p>
+        <h1 className="font-display text-3xl font-medium tracking-tight">WhatsApp Geçmişi</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           Ustalara gönderdiğin teşhis mesajları tarih ve usta bilgisiyle burada saklanır.
         </p>
       </header>
@@ -75,12 +73,12 @@ function WhatsappHistoryPage() {
       )}
 
       {q.data && q.data.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        <div className="border-t border-border py-12 text-center text-sm text-muted-foreground">
           Henüz WhatsApp mesajı gönderilmemiş.
         </div>
       )}
 
-      <ul className="space-y-3">
+      <ul className="divide-y divide-border">
         {(q.data ?? []).map((row) => {
           const mech = (row as { mechanics: { business_name: string; city: string; district: string | null; phone: string; whatsapp: string | null } | null }).mechanics;
           const businessName = mech?.business_name ?? "Usta";
@@ -89,11 +87,11 @@ function WhatsappHistoryPage() {
           const waHref = `https://wa.me/${cleanWa}?text=${encodeURIComponent(row.message)}`;
           const isOpen = openId === row.id;
           return (
-            <li key={row.id} className="rounded-lg border border-border bg-card p-3">
+            <li key={row.id} className="py-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-green-600" />
+                    <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
                     <h3 className="truncate text-sm font-semibold">{businessName}</h3>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -102,21 +100,16 @@ function WhatsappHistoryPage() {
                     {row.phone && <> · {row.phone}</>}
                   </p>
                   {row.specialties && row.specialties.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="mt-1.5 flex flex-wrap gap-x-2 text-[10px] text-muted-foreground">
                       {row.specialties.slice(0, 4).map((s: string) => (
-                        <span
-                          key={s}
-                          className="rounded bg-accent/30 px-1.5 py-0.5 text-[10px] text-accent-foreground"
-                        >
-                          {s}
-                        </span>
+                        <span key={s}>#{s}</span>
                       ))}
                     </div>
                   )}
                 </div>
                 <button
                   onClick={() => setOpenId(isOpen ? null : row.id)}
-                  className="rounded p-1 text-muted-foreground hover:bg-secondary"
+                  className="rounded-full p-1 text-muted-foreground hover:bg-secondary"
                   aria-label={isOpen ? "Gizle" : "Göster"}
                 >
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -124,17 +117,17 @@ function WhatsappHistoryPage() {
               </div>
 
               {isOpen && (
-                <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-secondary/50 p-2 text-[12px] leading-relaxed">
+                <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap border-l-2 border-border pl-3 text-[12px] leading-relaxed text-muted-foreground">
                   {row.message}
                 </pre>
               )}
 
-              <div className="mt-2 flex flex-wrap gap-1.5">
+              <div className="mt-2 flex flex-wrap gap-3 text-[11px] font-semibold">
                 <a
                   href={waHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md bg-green-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-green-700"
+                  className="inline-flex items-center gap-1 hover:underline"
                 >
                   <MessageCircle className="h-3 w-3" /> Tekrar gönder
                 </a>
@@ -145,7 +138,7 @@ function WhatsappHistoryPage() {
                       () => toast.error("Kopyalanamadı"),
                     );
                   }}
-                  className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium hover:bg-secondary/80"
+                  className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
                 >
                   <Copy className="h-3 w-3" /> Kopyala
                 </button>
@@ -154,7 +147,7 @@ function WhatsappHistoryPage() {
                     if (confirm("Bu kaydı silmek istiyor musun?")) delM.mutate(row.id);
                   }}
                   disabled={delM.isPending}
-                  className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-2.5 py-1 text-[11px] font-medium text-destructive hover:bg-destructive/20 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-destructive hover:underline disabled:opacity-50"
                 >
                   <Trash2 className="h-3 w-3" /> Sil
                 </button>

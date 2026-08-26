@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export function LoadingState({ label = "Yükleniyor..." }: { label?: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <Loader2 className="h-5 w-5 animate-spin" />
       <p className="text-sm">{label}</p>
     </div>
   );
@@ -23,11 +23,9 @@ export function EmptyState({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="node-orbit-bg flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-dim text-primary">
-        <Icon className="h-6 w-6" />
-      </div>
-      <h3 className="font-display text-base font-semibold">{title}</h3>
+    <div className="flex flex-col items-center justify-center gap-3 border-t border-border py-16 text-center">
+      <Icon className="h-6 w-6 text-muted-foreground" />
+      <h3 className="font-display text-lg font-medium">{title}</h3>
       {description && (
         <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
       )}
@@ -46,10 +44,8 @@ export function ErrorState({
   const message =
     error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu.";
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 py-12 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
-        <AlertCircle className="h-6 w-6" />
-      </div>
+    <div className="flex flex-col items-center justify-center gap-3 border-t border-destructive/30 py-12 text-center">
+      <AlertCircle className="h-6 w-6 text-destructive" strokeWidth={1.5} />
       <p className="max-w-md text-sm text-destructive">{message}</p>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
@@ -85,7 +81,7 @@ export function OfflineBanner() {
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-2xl bg-muted ${className}`}
+      className={`animate-pulse rounded-md bg-muted ${className}`}
       aria-hidden
     />
   );

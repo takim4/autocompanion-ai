@@ -189,7 +189,7 @@ export function MechanicSuggestions({
   }, []);
 
   return (
-    <div className="mt-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
+    <div className="mt-3 border-l-2 border-foreground/30 pl-3 py-1">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="text-xs font-semibold text-foreground">
           🔧 Bu sorunu çözebilecek yakındaki ustalar
@@ -198,7 +198,7 @@ export function MechanicSuggestions({
           {specialties.map((s) => (
             <span
               key={s}
-              className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-medium text-primary"
+              className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium"
             >
               {SPECIALTY_LABELS[s]}
             </span>
@@ -207,7 +207,7 @@ export function MechanicSuggestions({
       </div>
 
       {!coords && !effectiveCity && (
-        <div className="space-y-2 rounded-md border border-dashed border-border bg-card p-3">
+        <div className="space-y-2 border-t border-dashed border-border pt-3">
           {geoError && (
             <div className="flex items-start gap-1.5 rounded bg-destructive/10 p-2 text-[11px] text-destructive">
               <AlertCircle className="mt-0.5 h-3 w-3 shrink-0" />
@@ -218,7 +218,7 @@ export function MechanicSuggestions({
             <button
               onClick={() => requestLocation(false)}
               disabled={askingLocation}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
             >
               {askingLocation ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -274,7 +274,7 @@ export function MechanicSuggestions({
       )}
 
       {listQ.data && listQ.data.length === 0 && !importMut.isPending && (
-        <div className="rounded-md border border-dashed border-border bg-background p-3 text-xs text-muted-foreground">
+        <div className="border-t border-dashed border-border pt-3 text-xs text-muted-foreground">
           Bu bölgede uygun uzmanlıkta doğrulanmış usta bulunamadı. Konumu tekrar almayı veya farklı
           bir şehir seçmeyi dene.
         </div>
@@ -325,7 +325,7 @@ function MechanicCard({
   const cleanWa = (m.whatsapp ?? m.phone).replace(/[^\d+]/g, "").replace(/^\+/, "");
 
   return (
-    <div className="rounded-md border border-border bg-card p-3">
+    <div className="border-b border-border pb-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ function MechanicCard({
             </Link>
             {m.avg_rating > 0 && (
               <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
-                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                <Star className="h-3 w-3 fill-current" />
                 {m.avg_rating.toFixed(1)} ({m.rating_count})
               </span>
             )}
@@ -348,7 +348,7 @@ function MechanicCard({
             {m.district ? `${m.district}, ` : ""}
             {m.city}
             {m.distance_km != null && (
-              <span className="ml-1 rounded bg-secondary px-1.5 py-0.5 text-[10px]">
+              <span className="ml-1 rounded-full border border-border px-1.5 py-0.5 text-[10px]">
                 {formatDistanceKm(m.distance_km)}
               </span>
             )}
@@ -357,7 +357,7 @@ function MechanicCard({
             {m.specialties.slice(0, 4).map((s) => (
               <span
                 key={s}
-                className="rounded bg-accent/30 px-1.5 py-0.5 text-[10px] text-accent-foreground"
+                className="text-[10px] text-muted-foreground"
               >
                 {SPECIALTY_LABELS[s as Specialty] ?? s}
               </span>
@@ -369,7 +369,7 @@ function MechanicCard({
       <div className="mt-2 flex flex-wrap gap-1.5">
         <a
           href={`tel:${cleanPhone}`}
-          className="inline-flex items-center gap-1 rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium hover:bg-secondary/80"
+          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium hover:border-foreground"
         >
           <Phone className="h-3 w-3" /> Ara
         </a>
@@ -396,7 +396,7 @@ function MechanicCard({
         </a>
         <button
           onClick={() => setOpenQuote(true)}
-          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-2.5 py-1 text-[11px] font-semibold text-white"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-2.5 py-1 text-[11px] font-semibold"
         >
           <Send className="h-3 w-3" /> Teklif iste
         </button>
@@ -452,7 +452,7 @@ function QuoteRequestForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg border border-border bg-card p-4 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-popover p-5 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold">Teklif iste — {m.business_name}</h3>
           <button onClick={onClose} className="rounded p-1 hover:bg-accent">
@@ -500,7 +500,7 @@ function QuoteRequestForm({
           <button
             onClick={() => mut.mutate()}
             disabled={mut.isPending || issue.trim().length < 5}
-            className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
           >
             {mut.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
             Gönder
