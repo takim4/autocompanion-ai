@@ -29,7 +29,7 @@ function SplashPage() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="flex flex-col items-center gap-5"
       >
-        <div className="h-20 w-20 overflow-hidden rounded-2xl bg-brand-gradient shadow-[0_20px_45px_-18px_hsl(var(--shadow-color)/0.45)]">
+        <div className="h-20 w-20 overflow-hidden cut bg-brand-gradient shadow-[0_20px_45px_-18px_hsl(var(--shadow-color)/0.45)]">
           <img src={logoAsset.url} alt="AutoSocial" className="h-full w-full object-cover" />
         </div>
         <motion.p

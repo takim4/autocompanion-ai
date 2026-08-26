@@ -69,7 +69,10 @@
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 0.375rem;
+  --cut: 22px;
+  --cut-sm: 12px;
+  --rail-w: 84px;
 
   /* — Ink & Paper: Light (Platin) — */
   --background: #F4F5F7;
@@ -272,5 +275,40 @@
 
   .rule-hairline {
     border-color: var(--border);
+  }
+
+  /* Console shape system — an asymmetric cut corner instead of a rounded
+     one. This is the app's signature silhouette: a dashboard bezel / ticket
+     stub notch, used on cards, tiles and primary buttons everywhere. */
+  .cut {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--cut)) 0,
+      100% var(--cut),
+      100% 100%,
+      0 100%
+    );
+  }
+  .cut-sm {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--cut-sm)) 0,
+      100% var(--cut-sm),
+      100% 100%,
+      0 100%
+    );
+  }
+  .cut-br {
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      0 100%
+    );
+  }
+
+  .rail-item-active {
+    box-shadow: inset 3px 0 0 0 var(--foreground);
   }
 }
